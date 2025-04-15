@@ -1,7 +1,7 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
-public class CarController : MonoBehaviour
+public class CarControllerOld : MonoBehaviour
 {
     [Header("Wheel Colliders")]
     // Коллайдеры колёс: передние и задние

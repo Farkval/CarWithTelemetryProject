@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -7,49 +8,34 @@ public class CarCameraSwitch : MonoBehaviour
 {
     public Camera thirdPersonCamera;
     public Camera topDownCamera;
+    public Camera frontalCamera;
 
-    private CarCameraType _currentCameraMod = CarCameraType.ThirdPerson;
+    private List<Camera> _cameras = new List<Camera>();
+    private int _currentCameraIndex = -1;
 
     private void Start()
     {
-        SwitchCamera(CarCameraType.ThirdPerson);
+        _cameras.AddRange(new List<Camera>() { thirdPersonCamera, topDownCamera, frontalCamera });
+        SwitchCamera();
     }
 
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.C))
         {
-            SwitchToNextCameraMod();
+            SwitchCamera();
         }
     }
 
-    private void SwitchToNextCameraMod()
+    private void SwitchCamera()
     {
-        if (_currentCameraMod == CarCameraType.ThirdPerson)
-        {
-            SwitchCamera(CarCameraType.TopDown);
-        }
-        else if (_currentCameraMod == CarCameraType.TopDown)
-        {
-            SwitchCamera(CarCameraType.ThirdPerson);
-        }
-    }
+        _currentCameraIndex++;
+        if (_currentCameraIndex >= _cameras.Count)
+            _currentCameraIndex = 0;
 
-    private void SwitchCamera(CarCameraType currentCameraMod)
-    {
-        switch (currentCameraMod)
+        for (int i = 0; i < _cameras.Count; i++)
         {
-            case CarCameraType.ThirdPerson:
-                thirdPersonCamera.enabled = true;
-                topDownCamera.enabled = false;
-                break;
-
-            case CarCameraType.TopDown:
-                topDownCamera.enabled = true;
-                thirdPersonCamera.enabled = false;
-                break;
+            _cameras[i].enabled = (i == _currentCameraIndex);
         }
-
-        _currentCameraMod = currentCameraMod;
     }
 }
