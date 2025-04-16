@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
-public class CarControllerNew : MonoBehaviour
+public class FourWheelsCarController : MonoBehaviour
 {
     public enum CarDriveType
     {
@@ -39,7 +39,7 @@ public class CarControllerNew : MonoBehaviour
     public float forwardSpeedLimit = 120f;
 
     [Tooltip("Лимит скорости при движении назад, км/ч")]
-    public float reverseSpeedLimit = 30f;
+    public float reverseSpeedLimit = 60f;
 
     [Tooltip("Сила тормозного момента, при нажатии 'тормоза' или при сбросе газа")]
     public float brakeTorque = 2000f;
@@ -143,58 +143,48 @@ public class CarControllerNew : MonoBehaviour
     /// </summary>
     private void ApplyMotorTorque(float verticalInput)
     {
-        // Сбрасываем старые значения тормозного момента
+        // Сброс всех тормозных моментов
         frontLeftWheel.brakeTorque = 0f;
         frontRightWheel.brakeTorque = 0f;
         rearLeftWheel.brakeTorque = 0f;
         rearRightWheel.brakeTorque = 0f;
 
-        // Если нажимаем "назад" (S) и машина движется вперёд — это торможение
-        // или если нажимаем "вперёд" (W), а машина движется назад — тоже торможение.
-        if ((verticalInput < 0f && _currentSpeed > 2f) ||
-            (verticalInput > 0f && transform.InverseTransformDirection(_rb.linearVelocity).z < -2f))
-        {
-            // Применяем тормоз
-            frontLeftWheel.brakeTorque = brakeTorque;
-            frontRightWheel.brakeTorque = brakeTorque;
-            rearLeftWheel.brakeTorque = brakeTorque;
-            rearRightWheel.brakeTorque = brakeTorque;
+        float velocityZ = transform.InverseTransformDirection(_rb.linearVelocity).z;
 
-            // При этом не подаём моторный момент
-            frontLeftWheel.motorTorque = 0f;
-            frontRightWheel.motorTorque = 0f;
-            rearLeftWheel.motorTorque = 0f;
-            rearRightWheel.motorTorque = 0f;
+        bool isTryingToReverseWhileMovingForward = verticalInput < 0f && velocityZ > 1f;
+        bool isTryingToDriveForwardWhileMovingBackward = verticalInput > 0f && velocityZ < -1f;
+
+        // если игрок хочет двигаться в противоположную сторону — тормозим
+        if (isTryingToReverseWhileMovingForward || isTryingToDriveForwardWhileMovingBackward)
+        {
+            ApplyBrake(brakeTorque);
             return;
         }
 
+        // Ручной тормоз (Space)
+        if (Input.GetKey(KeyCode.Space))
+        {
+            ApplyBrake(brakeTorque * 1.5f); // можно усилить торможение при ручнике
+            return;
+        }
+
+        // Расчёт тяги
         float motor = maxMotorTorque * verticalInput;
+        float speedLimit = verticalInput >= 0f ? forwardSpeedLimit : reverseSpeedLimit;
 
-        // Если движемся вперёд — не превышаем forwardSpeedLimit, если назад — reverseSpeedLimit
-        bool movingForward = verticalInput > 0f && _currentSpeed < forwardSpeedLimit;
-        bool movingBackward = verticalInput < 0f && _currentSpeed < reverseSpeedLimit;
-
-        if (movingForward || movingBackward)
+        if (_currentSpeed < speedLimit)
         {
             switch (driveType)
             {
                 case CarDriveType.FrontWheelDrive:
                     frontLeftWheel.motorTorque = motor;
                     frontRightWheel.motorTorque = motor;
-                    rearLeftWheel.motorTorque = 0f;
-                    rearRightWheel.motorTorque = 0f;
                     break;
-
                 case CarDriveType.RearWheelDrive:
                     rearLeftWheel.motorTorque = motor;
                     rearRightWheel.motorTorque = motor;
-                    frontLeftWheel.motorTorque = 0f;
-                    frontRightWheel.motorTorque = 0f;
                     break;
-
                 case CarDriveType.AllWheelDrive:
-                    // Для полного привода можно делить момент пополам на оси,
-                    // либо подстраивать распределение, как нравится.
                     float halfMotor = motor * 0.5f;
                     frontLeftWheel.motorTorque = halfMotor;
                     frontRightWheel.motorTorque = halfMotor;
@@ -205,14 +195,24 @@ public class CarControllerNew : MonoBehaviour
         }
         else
         {
-            // Скорость достигла лимита, значит моторный момент = 0, чтобы не разгоняться дальше
+            // Скорость достигла лимита — не подаём тягу
             frontLeftWheel.motorTorque = 0f;
             frontRightWheel.motorTorque = 0f;
             rearLeftWheel.motorTorque = 0f;
             rearRightWheel.motorTorque = 0f;
         }
+    }
+    private void ApplyBrake(float torque)
+    {
+        frontLeftWheel.motorTorque = 0f;
+        frontRightWheel.motorTorque = 0f;
+        rearLeftWheel.motorTorque = 0f;
+        rearRightWheel.motorTorque = 0f;
 
-        //Debug.Log($"frontLeftWheel.motorTorque: {frontLeftWheel.motorTorque}\nfrontRightWheel.motorTorque: {frontRightWheel.motorTorque}\nrearLeftWheel.motorTorque: {rearLeftWheel.motorTorque}\nrearRightWheel.motorTorque: {rearRightWheel.motorTorque}");
+        frontLeftWheel.brakeTorque = torque;
+        frontRightWheel.brakeTorque = torque;
+        rearLeftWheel.brakeTorque = torque;
+        rearRightWheel.brakeTorque = torque;
     }
 
     /// <summary>

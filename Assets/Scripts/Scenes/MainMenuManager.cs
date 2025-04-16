@@ -4,7 +4,7 @@ using UnityEngine.SceneManagement;
 /// <summary>
 /// Контроллер главного меню
 /// </summary>
-public class MainMenuController : MonoBehaviour
+public class MainMenuManager : MonoBehaviour
 {
     public void OnStartButtonPressed()
     {

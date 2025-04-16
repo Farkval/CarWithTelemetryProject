@@ -5,7 +5,7 @@ using UnityEngine.UI;
 public class UIManager : MonoBehaviour
 {
     [Header("Car Reference")]
-    public CarControllerNew carController;
+    public FourWheelsCarController carController;
 
     [Header("UI Elements")]
     public TextMeshProUGUI speedText;

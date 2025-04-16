@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 /// </summary>
 public class GameKeyboardHandler : MonoBehaviour
 {
-    public CarControllerNew carController;
+    public FourWheelsCarController carController;
 
     private void Update()
     {
