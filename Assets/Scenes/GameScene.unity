@@ -2492,7 +2492,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac7f0f24d899bc940bb3c7d2ec1bc06e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lidarComponent: {fileID: 1534332433}
+  lidarComponent: {fileID: 2068708898}
   lidarImage: {fileID: 1076153824}
   textureSize: 128
   maxDistance: 10
@@ -3487,22 +3487,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a65e5c66091c71c4f996e73f2ee6ccb1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  frontLeftWheel: {fileID: 1567700155}
-  frontRightWheel: {fileID: 358586247}
-  rearLeftWheel: {fileID: 867724702}
-  rearRightWheel: {fileID: 2142684384}
-  maxMotorTorque: 1000
-  maxSteeringAngle: 30
-  currentSpeedLimit: 80
-  _resetHeight: 1
-  frontLeftMesh: {fileID: 269323615}
-  frontRightMesh: {fileID: 1498686111}
-  rearLeftMesh: {fileID: 1119665553}
-  rearRightMesh: {fileID: 373069587}
-  _rb: {fileID: 0}
-  _startPosition: {x: 0, y: 0, z: 0}
-  _startRotation: {x: 0, y: 0, z: 0, w: 0}
-  _currentSpeed: 0
 --- !u!1 &1422530205
 GameObject:
   m_ObjectHideFlags: 0
@@ -3898,7 +3882,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1534332431}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 611f3b8114070fd498a887c9a9e5980c, type: 3}
   m_Name: 
@@ -5419,7 +5403,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2068708896}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ddccda377e11fa14098f40bb304d3fd6, type: 3}
   m_Name: 
