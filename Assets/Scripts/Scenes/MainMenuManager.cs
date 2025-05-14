@@ -11,6 +11,11 @@ public class MainMenuManager : MonoBehaviour
         SceneManager.LoadScene(SceneName.GAME_SCENE);
     }
 
+    public void OnLoadMapEditorScenePressed()
+    {
+        SceneManager.LoadScene(SceneName.MAP_EDITOR_SCENE);
+    }
+
     public void OnSettingsButtonPressed()
     {
         // NOTE: можно открыть новую сцену с некоторыми настройками, звук, чувствительность и т.п.
