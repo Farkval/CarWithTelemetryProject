@@ -1,24 +1,24 @@
+using Assets.Scripts.MapEditor.Consts;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Контроллер главного меню
 /// </summary>
-public class MainMenuManager : MonoBehaviour
+public class MainMenuController : MonoBehaviour
 {
     public void OnStartButtonPressed()
     {
-        SceneManager.LoadScene(SceneName.GAME_SCENE);
+        SceneManager.LoadScene(SceneNameConst.GAME_SCENE);
     }
 
     public void OnLoadMapEditorScenePressed()
     {
-        SceneManager.LoadScene(SceneName.MAP_EDITOR_SCENE);
+        SceneManager.LoadScene(SceneNameConst.MAP_EDITOR_SCENE);
     }
 
     public void OnSettingsButtonPressed()
     {
-        // NOTE: можно открыть новую сцену с некоторыми настройками, звук, чувствительность и т.п.
         Debug.Log("Найстроки");
     }
 

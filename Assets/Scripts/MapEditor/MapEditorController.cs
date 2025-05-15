@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Assets.Scripts.MapEditor.Consts;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -18,6 +19,7 @@ namespace Assets.Scripts.MapEditor
 
         private ElementData _activeElement;
         private GameObject _previewInstance;
+        private GameObject _spawnInstance, _finishInstance;
 
         private readonly UndoRedoManager _undoRedo = new UndoRedoManager(100);
         private readonly List<PlacedObject> _placedObjects = new();
@@ -80,7 +82,7 @@ namespace Assets.Scripts.MapEditor
 
         public void ExitCommand()
         {
-            SceneManager.LoadScene(SceneName.MAIN_MENU_SCENE);
+            SceneManager.LoadScene(SceneNameConst.MAIN_MENU_SCENE);
         }
 
         public void SetActiveElement(ElementData data)
@@ -166,15 +168,35 @@ namespace Assets.Scripts.MapEditor
             if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) 
                 return;
 
+            HandleStartFinishPlacement();
+
             if (Input.GetMouseButtonDown(0) && !Input.GetKey(KeyCode.R) && !Input.GetKey(KeyCode.S) && !Input.GetKey(KeyCode.H))
             {
                 GameObject obj = Instantiate(_activeElement.prefab);
                 obj.transform.position = _previewInstance.transform.position;
                 obj.transform.rotation = _previewInstance.transform.rotation;
                 obj.transform.localScale = _previewInstance.transform.localScale;
+                if (_activeElement.displayName == ElementNameConst.SPAWN_INSTANCE_NAME) 
+                    _spawnInstance = obj;
+                if (_activeElement.displayName == ElementNameConst.FINISH_INSTANCE_NAME)
+                    _finishInstance = obj;
                 _placedObjects.Add(new PlacedObject(obj, _activeElement));
 
                 _undoRedo.AddAction(new PlaceAction(obj, transform));
+            }
+        }
+
+        private void HandleStartFinishPlacement()
+        {
+            if (_activeElement.displayName == ElementNameConst.SPAWN_INSTANCE_NAME && _spawnInstance)
+            {
+                Destroy(_spawnInstance);
+                _placedObjects.RemoveAll(po => po.data.displayName == ElementNameConst.SPAWN_INSTANCE_NAME);
+            }
+            if (_activeElement.displayName == ElementNameConst.FINISH_INSTANCE_NAME && _finishInstance)
+            {
+                Destroy(_finishInstance);
+                _placedObjects.RemoveAll(po => po.data.displayName == ElementNameConst.FINISH_INSTANCE_NAME);
             }
         }
 

@@ -12,7 +12,7 @@ public class GameKeyboardHandler : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            SceneManager.LoadScene(SceneName.MAIN_MENU_SCENE);
+            SceneManager.LoadScene(SceneNameConst.MAIN_MENU_SCENE);
         }
         if (Input.GetKeyDown(KeyCode.R))
         {
