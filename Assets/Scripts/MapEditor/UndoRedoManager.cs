@@ -33,6 +33,7 @@ namespace Assets.Scripts.MapEditor
         {
             if (_undoStack.Count == 0) 
                 return;
+
             var act = _undoStack.Pop();
             act.Undo();
             _redoStack.Push(act);
@@ -42,6 +43,7 @@ namespace Assets.Scripts.MapEditor
         {
             if (_redoStack.Count == 0) 
                 return;
+
             var act = _redoStack.Pop();
             act.Redo();
             _undoStack.Push(act);

@@ -19,7 +19,8 @@ namespace Assets.Scripts.MapEditor
         public List<ElementCategory> categories;
 
         private readonly Dictionary<ElementData, Button> _elementButtons = new();
-        private MapEditorController _controller; 
+        private MapEditorController _controller;
+        // Доработать, нужна для выделения явного
         private Button _currentButton;
         private ElementData _activeElement;
         private readonly List<GameObject> _allGrids = new();

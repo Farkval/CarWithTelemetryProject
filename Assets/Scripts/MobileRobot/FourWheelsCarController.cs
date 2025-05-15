@@ -120,8 +120,6 @@ public class FourWheelsCarController : MonoBehaviour
 
         // 6) Визуально обновляем положение/вращение мешей колёс
         UpdateWheelMeshes();
-
-        Debug.Log($"{frontLeftWheel.isGrounded}|{frontRightWheel.isGrounded}|{rearLeftWheel.isGrounded}|{rearRightWheel.isGrounded}");
     }
 
     /// <summary>

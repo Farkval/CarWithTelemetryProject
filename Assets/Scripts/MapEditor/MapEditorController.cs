@@ -60,7 +60,8 @@ namespace Assets.Scripts.MapEditor
                 }
                 else terr.Init(data.mapMeters);   // если старая карта без рельефа
 
-                foreach (var po in _placedObjects) Destroy(po.instance);
+                foreach (var po in _placedObjects) 
+                    Destroy(po.instance);
                 _placedObjects.Clear();
 
                 foreach (var inst in data.instances)

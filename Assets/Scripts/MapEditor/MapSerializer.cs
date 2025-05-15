@@ -15,7 +15,8 @@ namespace Assets.Scripts.MapEditor
         public void Save(List<PlacedObject> objects, int mapMeters)
         {
             string path = UnityEditor.EditorUtility.SaveFilePanel("Сохранить карту", "", "map.json", "json");
-            if (string.IsNullOrEmpty(path)) return;
+            if (string.IsNullOrEmpty(path)) 
+                return;
 
             var data = new MapData(objects, mapMeters);
             var terr = FindFirstObjectByType<MapTerrain>();
@@ -31,7 +32,9 @@ namespace Assets.Scripts.MapEditor
         public void Load(Action<MapData> onLoaded)
         {
             string path = UnityEditor.EditorUtility.OpenFilePanel("Загрузить карту", "", "json");
-            if (string.IsNullOrEmpty(path)) return;
+            if (string.IsNullOrEmpty(path)) 
+                return;
+
             var data = JsonUtility.FromJson<MapData>(File.ReadAllText(path));
             onLoaded?.Invoke(data);
         }

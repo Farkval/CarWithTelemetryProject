@@ -5,16 +5,16 @@ namespace Assets.Scripts.MapEditor
     [RequireComponent(typeof(MeshFilter), typeof(MeshCollider))]
     public class MapTerrain : MonoBehaviour
     {
-        [SerializeField] private int resolution = 96;   // узлов по стороне (1 узел = 1 м)
         [SerializeField] private float cellSize = 1f;  // шаг крупной сетки (метры)
 
         private float[,] _heights;    // высоты в узлах
         private Mesh _mesh;
+        private int _resolution;
 
         public void Init(int meters)
         {
-            resolution = meters;      // 24 / 48 / 96
-            _heights = new float[resolution + 1, resolution + 1];
+            _resolution = meters;
+            _heights = new float[_resolution + 1, _resolution + 1];
             GenerateMesh();
         }
 
@@ -23,28 +23,31 @@ namespace Assets.Scripts.MapEditor
         public void ImportHeights(float[,] h)
         {
             _heights = h;
-            resolution = h.GetLength(0) - 1;
+            _resolution = h.GetLength(0) - 1;
             UpdateMesh();
         }
 
         void GenerateMesh()
         {
-            _mesh = new Mesh { name = "TerrainMesh" };
-            Vector3[] verts = new Vector3[(resolution + 1) * (resolution + 1)];
+            _mesh = new Mesh 
+            { 
+                name = "TerrainMesh" 
+            };
+            Vector3[] verts = new Vector3[(_resolution + 1) * (_resolution + 1)];
             Vector2[] uvs = new Vector2[verts.Length];
-            int[] tris = new int[resolution * resolution * 6];
+            int[] tris = new int[_resolution * _resolution * 6];
             int t = 0;
-            for (int z = 0; z <= resolution; z++)
-                for (int x = 0; x <= resolution; x++)
+            for (int z = 0; z <= _resolution; z++)
+                for (int x = 0; x <= _resolution; x++)
                 {
-                    int i = z * (resolution + 1) + x; 
-                    float offset = resolution * cellSize * 0.5f;
+                    int i = z * (_resolution + 1) + x; 
+                    float offset = _resolution * cellSize * 0.5f;
                     verts[i] = new Vector3(x * cellSize - offset, 0, z * cellSize - offset);
-                    uvs[i] = new Vector2((float)x / resolution, (float)z / resolution);
-                    if (x < resolution && z < resolution)
+                    uvs[i] = new Vector2((float)x / _resolution, (float)z / _resolution);
+                    if (x < _resolution && z < _resolution)
                     {
                         int a = i; int b = i + 1; 
-                        int c = i + resolution + 1; 
+                        int c = i + _resolution + 1; 
                         int d = c + 1;
                         tris[t++] = a; 
                         tris[t++] = c; 
@@ -65,11 +68,11 @@ namespace Assets.Scripts.MapEditor
         void UpdateMesh()
         {
             var v = _mesh.vertices;
-            for (int z = 0; z <= resolution; z++)
+            for (int z = 0; z <= _resolution; z++)
             {
-                for (int x = 0; x <= resolution; x++)
+                for (int x = 0; x <= _resolution; x++)
                 {
-                    int i = z * (resolution + 1) + x;
+                    int i = z * (_resolution + 1) + x;
                     v[i].y = _heights[x, z];
                 }
             }
@@ -81,7 +84,7 @@ namespace Assets.Scripts.MapEditor
 
         public void ModifyWorld(Vector3 worldPos, float delta, float rad)
         {
-            float half = resolution * cellSize * 0.5f;
+            float half = _resolution * cellSize * 0.5f;
             int x = Mathf.RoundToInt((worldPos.x + half) / cellSize);
             int z = Mathf.RoundToInt((worldPos.z + half) / cellSize);
             ModifyGrid(x, z, delta, rad / cellSize);
@@ -91,18 +94,20 @@ namespace Assets.Scripts.MapEditor
         {
             int rad = Mathf.CeilToInt(radius);
             for (int ix = -rad; ix <= rad; ix++)
+            {
                 for (int iz = -rad; iz <= rad; iz++)
                 {
                     int px = gx + ix, pz = gz + iz;
-                    if (px < 0 || pz < 0 || px > resolution || pz > resolution) 
+                    if (px < 0 || pz < 0 || px > _resolution || pz > _resolution)
                         continue;
 
                     float falloff = 1f - Mathf.Sqrt(ix * ix + iz * iz) / radius;
-                    if (falloff < 0) 
+                    if (falloff < 0)
                         continue;
 
                     _heights[px, pz] += delta * falloff;
                 }
+            }
             UpdateMesh();
         }
     }
