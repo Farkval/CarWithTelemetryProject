@@ -19,7 +19,7 @@ namespace Assets.Scripts.MapEditor
             elementPath = $"Elements/{po.data.name}";
             position = po.instance.transform.position;
             rotation = po.instance.transform.rotation.eulerAngles;
-            localScale = po.instance.transform.localScale;   // не float
+            localScale = po.instance.transform.localScale;
         }
     }
 }

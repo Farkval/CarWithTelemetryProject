@@ -16,7 +16,12 @@ namespace Assets.Scripts.MapEditor
         private void Start()
         {
             sizeDropdown.ClearOptions();
-            sizeDropdown.AddOptions(new System.Collections.Generic.List<string> { "Маленькая 24×24м", "Средняя 48×48м", "Большая 96×96м" });
+            sizeDropdown.AddOptions(new System.Collections.Generic.List<string> 
+            { 
+                "Маленькая 24×24м", 
+                "Средняя 48×48м", 
+                "Большая 96×96м" 
+            });
             sizeDropdown.onValueChanged.AddListener(OnSizeChanged);
             OnSizeChanged(sizeDropdown.value);
         }

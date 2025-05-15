@@ -93,9 +93,9 @@ namespace Assets.Scripts.MapEditor
             {
                 _previewInstance = Instantiate(data.prefab, previewParent);
                 SetLayerRecursively(_previewInstance, LayerMask.NameToLayer("Ignore Raycast"));
-                ApplyPreviewMaterial(_previewInstance, 0.35f);
                 _origPreviewScale = _previewInstance.transform.localScale;
                 _currentScaleFactor = 1f;
+                _previewInstance.transform.position = new Vector3(_previewInstance.transform.position.x, 0, _previewInstance.transform.position.z);
             }
         }
 
@@ -121,7 +121,7 @@ namespace Assets.Scripts.MapEditor
                     float step = 0.05f;
                     point.x = Mathf.Round(point.x / step) * step;
                     point.z = Mathf.Round(point.z / step) * step;
-                    _previewInstance.transform.position = new Vector3(point.x, 0, point.z);
+                    _previewInstance.transform.position = new Vector3(point.x, _previewInstance.transform.position.y, point.z);
                 }
             }
 
@@ -187,23 +187,6 @@ namespace Assets.Scripts.MapEditor
             if (Input.GetKeyDown(KeyCode.Y) && Input.GetKey(KeyCode.LeftControl))
             {
                 _undoRedo.Redo();
-            }
-        }
-
-        private static void ApplyPreviewMaterial(GameObject go, float alpha)
-        {
-            foreach (var mr in go.GetComponentsInChildren<MeshRenderer>())
-            {
-                // создаём копию исходного материала, чтобы не портить оригинал
-                var orig = mr.sharedMaterial;
-                var mat = new Material(orig);
-                // включаем прозрачность (для URP Lit)
-                mat.SetFloat("_Surface", 1);           // Transparent
-                mat.SetFloat("_Blend", 0);             // Alpha
-                Color baseCol = mat.GetColor("_BaseColor");
-                baseCol.a = alpha;
-                mat.SetColor("_BaseColor", baseCol);
-                mr.material = mat;
             }
         }
 

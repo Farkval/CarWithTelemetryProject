@@ -24,6 +24,13 @@ namespace Assets.Scripts.MapEditor
         private ElementData _activeElement;
         private readonly List<GameObject> _allGrids = new();
 
+        public void DeselectElement()
+        {
+            _controller.SetActiveElement(null);
+            _activeElement = null;
+            _currentButton = null;
+        }
+
         private void Awake()
         {
             _controller = FindFirstObjectByType<MapEditorController>();
@@ -102,10 +109,6 @@ namespace Assets.Scripts.MapEditor
 
         private void OnElementSelected(ElementData data, Button btn)
         {
-            // 1) Сброс подсветки у предыдущего
-            if (_currentButton != null)
-                SetButtonColor(_currentButton, Color.white);
-
             // 2) Если кликнули по уже выбранной – снимаем выбор
             if (_activeElement == data)
             {
@@ -119,18 +122,9 @@ namespace Assets.Scripts.MapEditor
             _currentButton = btn;
             _activeElement = data;
             _controller.SetActiveElement(data);
-            SetButtonColor(btn, new Color(0.4f, 0.9f, 0.4f)); // нежно-зелёный
 
             GameObject.Find("RaiseToggle").GetComponent<Toggle>().isOn = false;
             GameObject.Find("PitToggle").GetComponent<Toggle>().isOn = false;
-        }
-
-        private static void SetButtonColor(Button b, Color c)
-        {
-            var colors = b.colors;
-            colors.normalColor = c;
-            colors.selectedColor = c;
-            b.colors = colors;
         }
     }
 }

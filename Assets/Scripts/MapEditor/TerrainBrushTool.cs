@@ -9,27 +9,30 @@ namespace Assets.Scripts.MapEditor
     {
         public enum Mode { Raise, Pit }
         public Mode mode = Mode.Raise;
-        public float strength = 0.5f;   // метров в секунду
+        public float strength = 0.5f;
         public float radius = 3f;
 
         Camera _cam;
         MapTerrain _terrain;
         Toggle _toggle;
+        ElementPaletteUI _elementPaletteUI;
 
         void Awake()
         {
             _cam = Camera.main;
             _terrain = FindFirstObjectByType<MapTerrain>();
             _toggle = GetComponent<Toggle>();
+            _elementPaletteUI = FindFirstObjectByType<ElementPaletteUI>();
 
-            // реагируем на включение / выключение
             _toggle.onValueChanged.AddListener(OnToggle);
-            enabled = _toggle.isOn;               // активны только когда выбраны
+            enabled = _toggle.isOn;
         }
 
         void OnToggle(bool isOn)
         {
             enabled = isOn;
+            if (isOn)
+                _elementPaletteUI.DeselectElement();
         }
 
         void Update()

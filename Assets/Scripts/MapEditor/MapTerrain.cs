@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Assets.Scripts.MapEditor
 {
@@ -28,7 +27,6 @@ namespace Assets.Scripts.MapEditor
             UpdateMesh();
         }
 
-        #region mesh helpers
         void GenerateMesh()
         {
             _mesh = new Mesh { name = "TerrainMesh" };
@@ -39,8 +37,9 @@ namespace Assets.Scripts.MapEditor
             for (int z = 0; z <= resolution; z++)
                 for (int x = 0; x <= resolution; x++)
                 {
-                    int i = z * (resolution + 1) + x;
-                    verts[i] = new Vector3(x * cellSize, 0, z * cellSize);
+                    int i = z * (resolution + 1) + x; 
+                    float offset = resolution * cellSize * 0.5f;
+                    verts[i] = new Vector3(x * cellSize - offset, 0, z * cellSize - offset);
                     uvs[i] = new Vector2((float)x / resolution, (float)z / resolution);
                     if (x < resolution && z < resolution)
                     {
@@ -67,22 +66,24 @@ namespace Assets.Scripts.MapEditor
         {
             var v = _mesh.vertices;
             for (int z = 0; z <= resolution; z++)
+            {
                 for (int x = 0; x <= resolution; x++)
                 {
                     int i = z * (resolution + 1) + x;
                     v[i].y = _heights[x, z];
                 }
+            }
             _mesh.vertices = v;
             _mesh.RecalculateNormals();
             _mesh.UploadMeshData(false);
             GetComponent<MeshCollider>().sharedMesh = _mesh;
         }
-        #endregion
 
         public void ModifyWorld(Vector3 worldPos, float delta, float rad)
         {
-            int x = Mathf.RoundToInt(worldPos.x / cellSize);
-            int z = Mathf.RoundToInt(worldPos.z / cellSize);
+            float half = resolution * cellSize * 0.5f;
+            int x = Mathf.RoundToInt((worldPos.x + half) / cellSize);
+            int z = Mathf.RoundToInt((worldPos.z + half) / cellSize);
             ModifyGrid(x, z, delta, rad / cellSize);
         }
 
@@ -95,18 +96,13 @@ namespace Assets.Scripts.MapEditor
                     int px = gx + ix, pz = gz + iz;
                     if (px < 0 || pz < 0 || px > resolution || pz > resolution) 
                         continue;
+
                     float falloff = 1f - Mathf.Sqrt(ix * ix + iz * iz) / radius;
                     if (falloff < 0) 
                         continue;
+
                     _heights[px, pz] += delta * falloff;
                 }
-            UpdateMesh();
-        }
-
-        public void RestoreHeights(Dictionary<(int, int), float> data)
-        {
-            foreach (var kv in data)
-                _heights[kv.Key.Item1, kv.Key.Item2] = kv.Value;
             UpdateMesh();
         }
     }
