@@ -2,28 +2,31 @@ using Assets.Scripts.MapEditor.Consts;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-/// <summary>
-/// Контроллер главного меню
-/// </summary>
-public class MainMenuController : MonoBehaviour
+namespace Assets.Scripts.Scenes
 {
-    public void OnStartButtonPressed()
+    /// <summary>
+    /// Контроллер главного меню
+    /// </summary>
+    public class MainMenuController : MonoBehaviour
     {
-        SceneManager.LoadScene(SceneNameConst.GAME_SCENE);
-    }
+        public void OnStartButtonPressed()
+        {
+            SceneManager.LoadScene(SceneNameConst.GAME_SCENE);
+        }
 
-    public void OnLoadMapEditorScenePressed()
-    {
-        SceneManager.LoadScene(SceneNameConst.MAP_EDITOR_SCENE);
-    }
+        public void OnLoadMapEditorScenePressed()
+        {
+            SceneManager.LoadScene(SceneNameConst.MAP_EDITOR_SCENE);
+        }
 
-    public void OnSettingsButtonPressed()
-    {
-        Debug.Log("Найстроки");
-    }
+        public void OnSettingsButtonPressed()
+        {
+            Debug.Log("Найстроки");
+        }
 
-    public void OnExitButtonPressed()
-    {
-        Application.Quit();
+        public void OnExitButtonPressed()
+        {
+            Application.Quit();
+        }
     }
 }

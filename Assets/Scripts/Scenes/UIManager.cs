@@ -1,34 +1,38 @@
+using Assets.Scripts.MobileRobot;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class UIManager : MonoBehaviour
+namespace Assets.Scripts.Scenes
 {
-    [Header("Car Reference")]
-    public FourWheelsCarController carController;
-
-    [Header("UI Elements")]
-    public TextMeshProUGUI speedText;
-    public TextMeshProUGUI coordinatesText;
-    public TextMeshProUGUI rotationText;
-    public Button restartButton;
-
-    private void Start()
+    public class UIManager : MonoBehaviour
     {
-    }
+        [Header("Car Reference")]
+        public FourWheelsCarController carController;
 
-    private void Update()
-    {
-        if (carController == null) 
-            return;
+        [Header("UI Elements")]
+        public TextMeshProUGUI speedText;
+        public TextMeshProUGUI coordinatesText;
+        public TextMeshProUGUI rotationText;
+        public Button restartButton;
 
-        // Апдейт мониторинговых данных тачки
-        float speed = carController.GetSpeed();
-        Vector3 pos = carController.GetPosition();
-        float angle = carController.GetRotationAngle();
+        private void Start()
+        {
+        }
 
-        speedText.text = "Speed: " + speed.ToString("F2") + " m/s";
-        coordinatesText.text = $"X: {pos.x:F2}, Z: {pos.z:F2}";
-        rotationText.text = $"Angle: {angle:F1}°";
+        private void Update()
+        {
+            if (carController == null)
+                return;
+
+            // Апдейт мониторинговых данных тачки
+            float speed = carController.GetSpeed();
+            Vector3 pos = carController.GetPosition();
+            float angle = carController.GetRotationAngle();
+
+            speedText.text = "Speed: " + speed.ToString("F2") + " m/s";
+            coordinatesText.text = $"X: {pos.x:F2}, Z: {pos.z:F2}";
+            rotationText.text = $"Angle: {angle:F1}°";
+        }
     }
 }

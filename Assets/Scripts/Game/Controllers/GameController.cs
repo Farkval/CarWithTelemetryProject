@@ -1,26 +1,30 @@
 using Assets.Scripts.MapEditor.Consts;
+using Assets.Scripts.MobileRobot;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-/// <summary>
-/// Обработчик хоткеев во время игры
-/// </summary>
-public class GameKeyboardHandler : MonoBehaviour
+namespace Assets.Scripts.Game.Controllers
 {
-    public FourWheelsCarController carController;
-
-    private void Update()
+    /// <summary>
+    /// Обработчик хоткеев во время игры
+    /// </summary>
+    public class GameKeyboardHandler : MonoBehaviour
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            SceneManager.LoadScene(SceneNameConst.MAIN_MENU_SCENE);
-        }
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            if (carController == null)
-                return;
+        public FourWheelsCarController carController;
 
-            carController.ResetCarPosition();
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                SceneManager.LoadScene(SceneNameConst.MAIN_MENU_SCENE);
+            }
+            if (Input.GetKeyDown(KeyCode.R))
+            {
+                if (carController == null)
+                    return;
+
+                carController.ResetCarPosition();
+            }
         }
     }
 }

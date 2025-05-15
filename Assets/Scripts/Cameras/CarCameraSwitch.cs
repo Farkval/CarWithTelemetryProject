@@ -1,41 +1,44 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// Контроллер камеры игрока
-/// </summary>
-public class CarCameraSwitch : MonoBehaviour
+namespace Assets.Scripts.Cameras
 {
-    public Camera thirdPersonCamera;
-    public Camera topDownCamera;
-    public Camera frontalCamera;
-
-    private List<Camera> _cameras = new List<Camera>();
-    private int _currentCameraIndex = -1;
-
-    private void Start()
+    /// <summary>
+    /// Контроллер камеры игрока
+    /// </summary>
+    public class CarCameraSwitch : MonoBehaviour
     {
-        _cameras.AddRange(new List<Camera>() { thirdPersonCamera, topDownCamera, frontalCamera });
-        SwitchCamera();
-    }
+        public Camera thirdPersonCamera;
+        public Camera topDownCamera;
+        public Camera frontalCamera;
 
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.C))
+        private List<Camera> _cameras = new List<Camera>();
+        private int _currentCameraIndex = -1;
+
+        private void Start()
         {
+            _cameras.AddRange(new List<Camera>() { thirdPersonCamera, topDownCamera, frontalCamera });
             SwitchCamera();
         }
-    }
 
-    private void SwitchCamera()
-    {
-        _currentCameraIndex++;
-        if (_currentCameraIndex >= _cameras.Count)
-            _currentCameraIndex = 0;
-
-        for (int i = 0; i < _cameras.Count; i++)
+        private void Update()
         {
-            _cameras[i].enabled = (i == _currentCameraIndex);
+            if (Input.GetKeyDown(KeyCode.C))
+            {
+                SwitchCamera();
+            }
+        }
+
+        private void SwitchCamera()
+        {
+            _currentCameraIndex++;
+            if (_currentCameraIndex >= _cameras.Count)
+                _currentCameraIndex = 0;
+
+            for (int i = 0; i < _cameras.Count; i++)
+            {
+                _cameras[i].enabled = (i == _currentCameraIndex);
+            }
         }
     }
 }

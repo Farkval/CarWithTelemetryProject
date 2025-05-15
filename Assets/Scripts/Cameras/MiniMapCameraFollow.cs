@@ -1,30 +1,33 @@
 using UnityEngine;
 
-/// <summary>
-/// Контроллер камеры мини карты
-/// </summary>
-public class MiniMapFollow : MonoBehaviour
+namespace Assets.Scripts.Cameras
 {
     /// <summary>
-    /// Transform тачки
+    /// Контроллер камеры мини карты
     /// </summary>
-    public Transform target;
-
-    private Vector3 offset;
-
-    private void Start()
+    public class MiniMapFollow : MonoBehaviour
     {
-        offset = transform.position - target.position;
-    }
+        /// <summary>
+        /// Transform тачки
+        /// </summary>
+        public Transform target;
 
-    private void LateUpdate()
-    {
-        if (target == null) 
-            return;
+        private Vector3 offset;
 
-        Vector3 newPosition = target.position + offset;
-        newPosition.y = transform.position.y;
-        
-        transform.SetPositionAndRotation(newPosition, Quaternion.Euler(90f, target.eulerAngles.y, 180f));
+        private void Start()
+        {
+            offset = transform.position - target.position;
+        }
+
+        private void LateUpdate()
+        {
+            if (target == null)
+                return;
+
+            Vector3 newPosition = target.position + offset;
+            newPosition.y = transform.position.y;
+
+            transform.SetPositionAndRotation(newPosition, Quaternion.Euler(90f, target.eulerAngles.y, 180f));
+        }
     }
 }
