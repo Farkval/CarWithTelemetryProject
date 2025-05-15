@@ -64,7 +64,11 @@ namespace Assets.Scripts.MapEditor
                 foreach (var inst in data.instances)
                 {
                     var ed = Resources.Load<ElementData>(inst.elementPath);
-                    if (!ed) { Debug.LogWarning($"ElementData {inst.elementPath} not found"); continue; }
+                    if (!ed) 
+                    {
+                        Debug.LogWarning($"ElementData {inst.elementPath} not found"); 
+                        continue; 
+                    }
 
                     GameObject obj = Instantiate(ed.prefab);
                     obj.transform.SetPositionAndRotation(inst.position, Quaternion.Euler(inst.rotation));

@@ -71,8 +71,10 @@ namespace Assets.Scripts.MapEditor
                 // раскрытие ─ одновременно только одна
                 catToggle.onValueChanged.AddListener(isOn =>
                 {
-                    foreach (var g in _allGrids) g.SetActive(false);
-                    if (isOn) gridRootGO.SetActive(true);
+                    foreach (var g in _allGrids) 
+                        g.SetActive(false);
+                    if (isOn) 
+                        gridRootGO.SetActive(true);
                 });
 
                 gridRootGO.SetActive(false);

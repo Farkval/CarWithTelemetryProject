@@ -44,9 +44,15 @@ namespace Assets.Scripts.MapEditor
                     uvs[i] = new Vector2((float)x / resolution, (float)z / resolution);
                     if (x < resolution && z < resolution)
                     {
-                        int a = i; int b = i + 1; int c = i + resolution + 1; int d = c + 1;
-                        tris[t++] = a; tris[t++] = c; tris[t++] = b;
-                        tris[t++] = b; tris[t++] = c; tris[t++] = d;
+                        int a = i; int b = i + 1; 
+                        int c = i + resolution + 1; 
+                        int d = c + 1;
+                        tris[t++] = a; 
+                        tris[t++] = c; 
+                        tris[t++] = b;
+                        tris[t++] = b; 
+                        tris[t++] = c; 
+                        tris[t++] = d;
                     }
                 }
             _mesh.vertices = verts;
@@ -87,9 +93,11 @@ namespace Assets.Scripts.MapEditor
                 for (int iz = -rad; iz <= rad; iz++)
                 {
                     int px = gx + ix, pz = gz + iz;
-                    if (px < 0 || pz < 0 || px > resolution || pz > resolution) continue;
+                    if (px < 0 || pz < 0 || px > resolution || pz > resolution) 
+                        continue;
                     float falloff = 1f - Mathf.Sqrt(ix * ix + iz * iz) / radius;
-                    if (falloff < 0) continue;
+                    if (falloff < 0) 
+                        continue;
                     _heights[px, pz] += delta * falloff;
                 }
             UpdateMesh();

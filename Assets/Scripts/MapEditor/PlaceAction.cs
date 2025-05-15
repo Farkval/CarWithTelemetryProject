@@ -15,12 +15,14 @@ namespace Assets.Scripts.MapEditor
 
         public void Undo()
         {
-            if (_obj) _obj.SetActive(false);
+            if (_obj) 
+                _obj.SetActive(false);
         }
 
         public void Redo()
         {
-            if (_obj) _obj.SetActive(true);
+            if (_obj) 
+                _obj.SetActive(true);
         }
     }
 }

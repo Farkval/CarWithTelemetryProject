@@ -25,7 +25,9 @@ namespace Assets.Scripts.MapEditor
             yaw = 45; pitch = 30;
             Apply();
         }
+
         public void SetInvertX(bool v) => invertX = v;
+
         public void SetInvertY(bool v) => invertY = v;
 
         void Update()
@@ -52,6 +54,7 @@ namespace Assets.Scripts.MapEditor
 
             Apply();
         }
+
         void Apply()
         {
             var rot = Quaternion.Euler(pitch, yaw, 0);

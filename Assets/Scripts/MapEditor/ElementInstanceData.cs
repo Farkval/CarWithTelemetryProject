@@ -13,6 +13,7 @@ namespace Assets.Scripts.MapEditor
         public float scale;
         public List<CustomProperty> customProperties = new();
         public Vector3 localScale;
+
         public ElementInstanceData(PlacedObject po)
         {
             elementPath = $"Elements/{po.data.name}";
