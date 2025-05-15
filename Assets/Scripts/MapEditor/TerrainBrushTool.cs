@@ -29,14 +29,16 @@ namespace Assets.Scripts.MapEditor
 
         void OnToggle(bool isOn)
         {
-            if (!isOn)
-                return;
+            enabled = isOn;
         }
 
         void Update()
         {
-            if (!Input.GetMouseButton(0)) return;
-            if (EventSystem.current.IsPointerOverGameObject()) return;
+            if (!Input.GetMouseButton(0)) 
+                return;
+
+            if (EventSystem.current.IsPointerOverGameObject()) 
+                return;
 
             if (Physics.Raycast(_cam.ScreenPointToRay(Input.mousePosition),
                                 out var hit, 500f, LayerMask.GetMask("Default")))

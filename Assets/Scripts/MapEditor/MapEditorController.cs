@@ -97,13 +97,17 @@ namespace Assets.Scripts.MapEditor
 
         private void HandlePreview()
         {
-            if (_activeElement == null || _previewInstance == null) return;
-            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
+            if (_activeElement == null || _previewInstance == null) 
+                return;
 
+            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) 
+                return;
+
+            bool heighting = Input.GetMouseButton(0) && Input.GetKey(KeyCode.H);
             bool rotating = Input.GetMouseButton(0) && Input.GetKey(KeyCode.R);
             bool scaling = Input.GetMouseButton(0) && Input.GetKey(KeyCode.S);
 
-            if (!rotating && !scaling)
+            if (!rotating && !scaling && !heighting)
             {
                 Ray ray = sceneCamera.ScreenPointToRay(Input.mousePosition);
                 if (Physics.Raycast(ray, out RaycastHit hit, 1000f, LayerMask.GetMask("Default")))
@@ -141,14 +145,24 @@ namespace Assets.Scripts.MapEditor
                 );
                 _previewInstance.transform.localScale = _origPreviewScale * _currentScaleFactor;
             }
+
+            if (heighting)
+            {
+                float dy = Input.GetAxis("Mouse Y") * 0.05f;
+                var pos = _previewInstance.transform.position;
+                _previewInstance.transform.position = pos + Vector3.up * dy;
+            }
         }
 
         private void HandlePlacement()
         {
-            if (_activeElement == null || _previewInstance == null) return;
-            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
+            if (_activeElement == null || _previewInstance == null) 
+                return;
 
-            if (Input.GetMouseButtonDown(0) && !Input.GetKey(KeyCode.R) && !Input.GetKey(KeyCode.S))
+            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) 
+                return;
+
+            if (Input.GetMouseButtonDown(0) && !Input.GetKey(KeyCode.R) && !Input.GetKey(KeyCode.S) && !Input.GetKey(KeyCode.H))
             {
                 GameObject obj = Instantiate(_activeElement.prefab);
                 obj.transform.position = _previewInstance.transform.position;
