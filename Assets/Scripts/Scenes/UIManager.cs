@@ -1,4 +1,4 @@
-using Assets.Scripts.MobileRobot;
+using Assets.Scripts.Robot;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -26,13 +26,13 @@ namespace Assets.Scripts.Scenes
                 return;
 
             // Апдейт мониторинговых данных тачки
-            float speed = carController.GetSpeed();
-            Vector3 pos = carController.GetPosition();
-            float angle = carController.GetRotationAngle();
+            //float speed = carController.GetSpeed();
+            //Vector3 pos = carController.GetPosition();
+            //float angle = carController.GetRotationAngle();
 
-            speedText.text = "Speed: " + speed.ToString("F2") + " m/s";
-            coordinatesText.text = $"X: {pos.x:F2}, Z: {pos.z:F2}";
-            rotationText.text = $"Angle: {angle:F1}°";
+            //speedText.text = "Speed: " + speed.ToString("F2") + " m/s";
+            //coordinatesText.text = $"X: {pos.x:F2}, Z: {pos.z:F2}";
+            //rotationText.text = $"Angle: {angle:F1}°";
         }
     }
 }

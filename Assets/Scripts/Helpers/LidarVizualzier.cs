@@ -1,4 +1,4 @@
-﻿using Assets.Scripts.Sensors.Intefaces;
+﻿using Assets.Scripts.Robot.Sensors;
 using Assets.Scripts.Sensors.Models;
 using System.Collections.Generic;
 using UnityEngine;
@@ -71,7 +71,7 @@ namespace Assets.Scripts.Helpers
             }
 
             // Получаем облако точек из лидара
-            List<LidarPoint> cloud = lidarSensor.GetPointCloud();
+            List<LidarPoint> cloud = lidarSensor.PointCloud;
 
             // Позиция и ориентация робота (или самого лидара)
             // Обычно это transform.position, transform.forward и т.д. (если скрипт висит на том же объекте, где сам лидар).

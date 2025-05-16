@@ -1149,7 +1149,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1997241369501977372}
   - component: {fileID: 8007620225883345690}
-  - component: {fileID: 8255104456068438310}
+  - component: {fileID: 5029888652568703608}
   m_Layer: 6
   m_Name: Car
   m_TagString: Untagged
@@ -1205,7 +1205,7 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &8255104456068438310
+--- !u!114 &5029888652568703608
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1214,7 +1214,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 3295140017024114586}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4d80fd31e7c91564aad1752cedcda40d, type: 3}
+  m_Script: {fileID: 11500000, guid: 6ea7b72181e34324eb14a9fd323ade25, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   frontLeftWheel: {fileID: 6859805901378435155}
@@ -1226,11 +1226,11 @@ MonoBehaviour:
   rearLeftMesh: {fileID: 4592257643781140257}
   rearRightMesh: {fileID: 4715588249445879819}
   driveType: 0
-  maxMotorTorque: 1000
+  maxMotorTorque: 1500
   maxSteeringAngle: 30
   maxSpeed: 180
   forwardSpeedLimit: 120
-  reverseSpeedLimit: 30
+  reverseSpeedLimit: 60
   brakeTorque: 2000
   resetHeight: 1
   globalFrictionMultiplier: 1

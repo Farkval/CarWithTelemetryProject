@@ -1,5 +1,5 @@
 using Assets.Scripts.MapEditor.Consts;
-using Assets.Scripts.MobileRobot;
+using Assets.Scripts.Robot;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -23,7 +23,7 @@ namespace Assets.Scripts.Game.Controllers
                 if (carController == null)
                     return;
 
-                carController.ResetCarPosition();
+                carController.ResetCar();
             }
         }
     }
