@@ -9,9 +9,10 @@ namespace Assets.Scripts.MapEditor
     {
         [SerializeField] private TMP_Dropdown sizeDropdown;
         [SerializeField] private MapTerrain terrain;
-        public int CurrentMapMeters { get; private set; }
 
-        public void SetMap(int meters) => OnSizeChanged((meters / 24) - 1);
+        public MapSize CurrentMapSize { get; private set; }
+
+        public void SetMap(MapSize mapSize) => OnSizeChanged(-1, incomingMapSize: mapSize);
 
         private void Start()
         {
@@ -32,13 +33,14 @@ namespace Assets.Scripts.MapEditor
             return list;
         }
 
-        private void OnSizeChanged(int index)
+
+        private void OnSizeChanged(int index) => OnSizeChanged(index, null);
+        private void OnSizeChanged(int mapSizeIndex, MapSize? incomingMapSize = null)
         {
-            var sizes = Enum.GetValues(typeof(MapSize));
-            int meters = (int)sizes.GetValue(index);
-            CurrentMapMeters = meters;
-            float groundScale = meters / 10f;
-            terrain.Init(meters);
+            var mapSize = incomingMapSize ?? (MapSize)Enum.GetValues(typeof(MapSize)).GetValue(mapSizeIndex);
+            CurrentMapSize = mapSize;
+            float groundScale = (int)mapSize / 10f;
+            terrain.Init((int)mapSize);
         }
     }
 }

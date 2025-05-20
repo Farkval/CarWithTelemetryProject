@@ -14,6 +14,7 @@ def update(robot, dt):
       • robot.Lidars    (list[ILidar])
     dt    : float  – прошедшее время, сек
     """
+    print("Едем едем едем быстро быстро")
     # пример: едем прямо 3 секунды, потом тормозим
     if update.t < 3:
         robot.SetMotorPower(0.4, 0.4)

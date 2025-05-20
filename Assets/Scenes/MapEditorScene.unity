@@ -873,6 +873,10 @@ MonoBehaviour:
   - name: "\u0421\u0442\u0435\u043D\u044B"
     elements:
     - {fileID: 11400000, guid: 3f67b775b9414e14bbdb55cebf3b355d, type: 2}
+  - name: "\u0422\u0440\u0438\u0433\u0433\u0435\u0440\u044B"
+    elements:
+    - {fileID: 11400000, guid: bed4e96692250f1458f0aac372340011, type: 2}
+    - {fileID: 11400000, guid: 531e9e5729d379845879307b9f3f20e8, type: 2}
 --- !u!114 &285698852
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1566,7 +1570,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 148764b354ca0834b99964064d3b9b5e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  resolution: 96
   cellSize: 1
 --- !u!64 &566897636
 MeshCollider:

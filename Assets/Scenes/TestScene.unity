@@ -376,7 +376,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 716d3d3ab6edb5c40a05985fc537bbb5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  carController: {fileID: 1411437113}
+  carController: {fileID: 0}
   speedText: {fileID: 1494987904}
   coordinatesText: {fileID: 16216117}
   rotationText: {fileID: 559416547}
@@ -1015,6 +1015,11 @@ Transform:
   - {fileID: 1364401511}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &708324991 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3295140017024114586, guid: f28d75fe41feab644a68019af8e6c251, type: 3}
+  m_PrefabInstance: {fileID: 486744951981304505}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &723742677
 GameObject:
   m_ObjectHideFlags: 0
@@ -2342,7 +2347,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1b24411e82d416b49b6d850876b9cac8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  carController: {fileID: 1411437113}
+  carController: {fileID: 0}
 --- !u!4 &1410169487
 Transform:
   m_ObjectHideFlags: 0
@@ -2358,22 +2363,25 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1411437113 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8255104456068438310, guid: f28d75fe41feab644a68019af8e6c251, type: 3}
-  m_PrefabInstance: {fileID: 486744951981304505}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4d80fd31e7c91564aad1752cedcda40d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!4 &1411437115 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1997241369501977372, guid: f28d75fe41feab644a68019af8e6c251, type: 3}
   m_PrefabInstance: {fileID: 486744951981304505}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1411437118
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 708324991}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f443d33d0f86149409067c9d25f56565, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  scriptFile: my_bot.py
+  autoRun: 0
 --- !u!1 &1422530205
 GameObject:
   m_ObjectHideFlags: 0
@@ -3345,7 +3353,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 803, y: -382}
+  m_AnchoredPosition: {x: 810, y: 67}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1824853309
@@ -3640,7 +3648,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 180}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 802, y: -380}
+  m_AnchoredPosition: {x: 809, y: 67}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2042551555
@@ -3744,7 +3752,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3295140017024114586, guid: f28d75fe41feab644a68019af8e6c251, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1411437118}
   m_SourcePrefab: {fileID: 100100000, guid: f28d75fe41feab644a68019af8e6c251, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

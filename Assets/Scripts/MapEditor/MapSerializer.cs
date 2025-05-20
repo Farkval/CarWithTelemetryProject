@@ -12,13 +12,13 @@ namespace Assets.Scripts.MapEditor
     public class MapSerializer : MonoBehaviour
     {
 #if UNITY_EDITOR
-        public void Save(List<PlacedObject> objects, int mapMeters)
+        public void Save(List<PlacedObject> objects, MapSize mapSize)
         {
             string path = UnityEditor.EditorUtility.SaveFilePanel("Сохранить карту", "", "map.json", "json");
             if (string.IsNullOrEmpty(path)) 
                 return;
 
-            var data = new MapData(objects, mapMeters);
+            var data = new MapData(objects, mapSize);
             var terr = FindFirstObjectByType<MapTerrain>();
             float[,] h = terr.ExportHeights();
             data.heights = new float[h.Length];

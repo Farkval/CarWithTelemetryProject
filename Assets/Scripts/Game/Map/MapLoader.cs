@@ -1,4 +1,6 @@
 ﻿using Assets.Scripts.MapEditor;
+using Assets.Scripts.MapEditor.Consts;
+using System;
 using System.IO;
 using UnityEngine;
 
@@ -23,7 +25,7 @@ namespace Assets.Scripts.Game.Map
             var data = JsonUtility.FromJson<MapData>(File.ReadAllText(path));
 
             // размер и рельеф
-            terrain.Init(data.mapMeters);
+            terrain.Init((int)data.size);
             if (data.heights != null && data.heights.Length > 0)
             {
                 int n = (int)Mathf.Sqrt(data.heights.Length) - 1;
@@ -34,19 +36,21 @@ namespace Assets.Scripts.Game.Map
 
             // объекты
             Vector3 spawnPos = Vector3.zero;
+            Quaternion spawnRot = Quaternion.identity;
             foreach (var inst in data.instances)
             {
                 var ed = Resources.Load<ElementData>(inst.elementPath);
                 if (!ed) continue;
 
                 // Spawn / Finish — специальная логика
-                if (ed.displayName == "SpawnPoint") 
-                { 
+                if (ed.name == ElementNameConst.START_INSTANCE_NAME) 
+                {
                     spawnPos = inst.position;
+                    spawnRot = Quaternion.Euler(inst.rotation + new Vector3(0, 90, 0));
                     continue; 
                 }
 
-                if (ed.displayName == "FinishPoint")
+                if (ed.name == ElementNameConst.FINISH_INSTANCE_NAME)
                 {
                     var fin = Instantiate(ed.prefab, inst.position, Quaternion.identity);
                     fin.AddComponent<FinishTrigger>();
@@ -57,8 +61,7 @@ namespace Assets.Scripts.Game.Map
                           .transform.localScale = inst.localScale;
             }
 
-            // машинка
-            Instantiate(carPrefab, spawnPos + Vector3.up * 0.5f, Quaternion.identity);
+            Instantiate(carPrefab, spawnPos + Vector3.up * 0.5f, spawnRot);
         }
     }
 }

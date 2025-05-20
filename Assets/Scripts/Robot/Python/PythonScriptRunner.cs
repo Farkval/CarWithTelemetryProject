@@ -3,6 +3,7 @@ using UnityEngine;
 using IronPython.Hosting;
 using Microsoft.Scripting.Hosting;
 using Assets.Scripts.Robot.Api.Interfaces;
+using Assets.Scripts.MapEditor;
 
 [RequireComponent(typeof(MonoBehaviour))]
 public class PythonScriptRunner : MonoBehaviour
@@ -61,6 +62,10 @@ public class PythonScriptRunner : MonoBehaviour
         try
         {
             var source = engine.CreateScriptSourceFromFile(path);
+            // позволяем log() из Python
+            scope.SetVariable("log", (System.Action<object>)ConsoleManager.LogObj);
+            // переопределяем стандартный print
+            engine.Execute("import builtins\nbuiltins.print=lambda *a,**k: log(' '.join(map(str,a)))", scope);
             source.Execute(scope);                       // выполняем модуль
             scope.TryGetVariable("update", out updateFunc);
             isRunning = true;

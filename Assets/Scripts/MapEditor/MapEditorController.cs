@@ -40,7 +40,7 @@ namespace Assets.Scripts.MapEditor
         public void SaveCommand()
         {
             var mm = FindFirstObjectByType<MapManager>();
-            serializer.Save(_placedObjects, mm.CurrentMapMeters);
+            serializer.Save(_placedObjects, mm.CurrentMapSize);
         }
 
         public void LoadCommand()
@@ -48,7 +48,8 @@ namespace Assets.Scripts.MapEditor
             serializer.Load(data =>
             {
                 var mm = FindFirstObjectByType<MapManager>();
-                mm.SetMap(data.mapMeters);
+                var index = Enum.GetValues(typeof(MapSize));
+                mm.SetMap(data.size);
 
                 var terr = FindFirstObjectByType<MapTerrain>();
                 if (data.heights != null && data.heights.Length > 0)
@@ -58,24 +59,25 @@ namespace Assets.Scripts.MapEditor
                     Buffer.BlockCopy(data.heights, 0, h, 0, sizeof(float) * data.heights.Length);
                     terr.ImportHeights(h);
                 }
-                else terr.Init(data.mapMeters);   // если старая карта без рельефа
+                else terr.Init((int)data.size);   // если старая карта без рельефа
 
-                foreach (var po in _placedObjects) 
+                foreach (var po in _placedObjects)
                     Destroy(po.instance);
                 _placedObjects.Clear();
 
                 foreach (var inst in data.instances)
                 {
                     var ed = Resources.Load<ElementData>(inst.elementPath);
-                    if (!ed) 
+                    if (!ed)
                     {
-                        Debug.LogWarning($"ElementData {inst.elementPath} not found"); 
-                        continue; 
+                        Debug.LogWarning($"ElementData {inst.elementPath} not found");
+                        continue;
                     }
 
                     GameObject obj = Instantiate(ed.prefab);
                     obj.transform.SetPositionAndRotation(inst.position, Quaternion.Euler(inst.rotation));
                     obj.transform.localScale = inst.localScale;
+                    PostHandleStartFinishPoint(obj, ed);
                     _placedObjects.Add(new PlacedObject(obj, ed));
                 }
             });
@@ -104,10 +106,10 @@ namespace Assets.Scripts.MapEditor
 
         private void HandlePreview()
         {
-            if (_activeElement == null || _previewInstance == null) 
+            if (_activeElement == null || _previewInstance == null)
                 return;
 
-            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) 
+            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
                 return;
 
             bool heighting = Input.GetMouseButton(0) && Input.GetKey(KeyCode.H);
@@ -163,42 +165,49 @@ namespace Assets.Scripts.MapEditor
 
         private void HandlePlacement()
         {
-            if (_activeElement == null || _previewInstance == null) 
+            if (_activeElement == null || _previewInstance == null)
                 return;
 
-            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) 
+            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
                 return;
-
-            HandleStartFinishPlacement();
 
             if (Input.GetMouseButtonDown(0) && !Input.GetKey(KeyCode.R) && !Input.GetKey(KeyCode.S) && !Input.GetKey(KeyCode.H))
             {
+                PreHandleStartFinishPlacement();
+
                 GameObject obj = Instantiate(_activeElement.prefab);
                 obj.transform.position = _previewInstance.transform.position;
                 obj.transform.rotation = _previewInstance.transform.rotation;
                 obj.transform.localScale = _previewInstance.transform.localScale;
-                if (_activeElement.displayName == ElementNameConst.SPAWN_INSTANCE_NAME) 
-                    _spawnInstance = obj;
-                if (_activeElement.displayName == ElementNameConst.FINISH_INSTANCE_NAME)
-                    _finishInstance = obj;
+
+                PostHandleStartFinishPoint(obj, _activeElement);
+
                 _placedObjects.Add(new PlacedObject(obj, _activeElement));
 
                 _undoRedo.AddAction(new PlaceAction(obj, transform));
             }
         }
 
-        private void HandleStartFinishPlacement()
+        private void PreHandleStartFinishPlacement()
         {
-            if (_activeElement.displayName == ElementNameConst.SPAWN_INSTANCE_NAME && _spawnInstance)
+            if (_activeElement.name == ElementNameConst.START_INSTANCE_NAME)
             {
                 Destroy(_spawnInstance);
-                _placedObjects.RemoveAll(po => po.data.displayName == ElementNameConst.SPAWN_INSTANCE_NAME);
+                _placedObjects.RemoveAll(po => po.data.name == ElementNameConst.START_INSTANCE_NAME);
             }
-            if (_activeElement.displayName == ElementNameConst.FINISH_INSTANCE_NAME && _finishInstance)
+            if (_activeElement.name == ElementNameConst.FINISH_INSTANCE_NAME)
             {
                 Destroy(_finishInstance);
-                _placedObjects.RemoveAll(po => po.data.displayName == ElementNameConst.FINISH_INSTANCE_NAME);
+                _placedObjects.RemoveAll(po => po.data.name == ElementNameConst.FINISH_INSTANCE_NAME);
             }
+        }
+
+        private void PostHandleStartFinishPoint(GameObject obj, ElementData ed)
+        {
+            if (ed.name == ElementNameConst.START_INSTANCE_NAME)
+                _spawnInstance = obj;
+            if (ed.name == ElementNameConst.FINISH_INSTANCE_NAME)
+                _finishInstance = obj;
         }
 
         private void HandleUndoRedo()

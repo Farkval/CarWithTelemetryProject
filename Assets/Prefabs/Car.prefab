@@ -1150,6 +1150,7 @@ GameObject:
   - component: {fileID: 1997241369501977372}
   - component: {fileID: 8007620225883345690}
   - component: {fileID: 5029888652568703608}
+  - component: {fileID: 5083687975242542655}
   m_Layer: 6
   m_Name: Car
   m_TagString: Untagged
@@ -1236,6 +1237,20 @@ MonoBehaviour:
   globalFrictionMultiplier: 1
   forwardFrictionMultiplier: 1
   sidewaysFrictionMultiplier: 1
+--- !u!114 &5083687975242542655
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3295140017024114586}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f443d33d0f86149409067c9d25f56565, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  scriptFile: my_bot.py
+  autoRun: 0
 --- !u!1 &3352654363334497081
 GameObject:
   m_ObjectHideFlags: 0
