@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Assets.Scripts.MapEditor.Consts;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace Assets.Scripts.MapEditor
@@ -13,8 +14,12 @@ namespace Assets.Scripts.MapEditor
 
         void OnTriggerEnter(Collider other)
         {
+            Debug.Log("Триггер");
             if (other.CompareTag("Player"))
-                SceneManager.LoadScene("MainMenu");
+            {
+                Debug.Log("Триггер на игрока");
+                SceneManager.LoadScene(SceneNameConst.MAIN_MENU_SCENE);
+            }
         }
     }
 }

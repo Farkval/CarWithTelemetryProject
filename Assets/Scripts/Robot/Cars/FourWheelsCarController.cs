@@ -74,7 +74,6 @@ namespace Assets.Scripts.Robot
 
             // собрать лидары в детях
             Lidars.AddRange(GetComponentsInChildren<ILidar>());
-            Debug.Log($"Лидаров найдено: {Lidars.Count}");
         }
 
         void FixedUpdate()

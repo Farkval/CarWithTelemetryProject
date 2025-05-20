@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Assets.Scripts.Robot.Python;
+using UnityEngine;
 
 namespace Assets.Scripts.Sensors.Models
 {
@@ -6,10 +7,12 @@ namespace Assets.Scripts.Sensors.Models
     /// Точка результата сканирования лидаром.
     /// Хранит мировую позицию точки, дистанцию и (опционально) нормаль/интенсивность.
     /// </summary>
+    [PythonStubExport("Луч лидара")]
     public struct LidarPoint
     {
         public Vector3 WorldPosition;
-        public float Distance;
+        [PythonStubExport("Дистанция до объекта")]
+        public float Distance { get; set; }
         // Можно добавить другие параметры: интенсивность, нормаль и т. д.
 
         public LidarPoint(Vector3 pos, float dist)

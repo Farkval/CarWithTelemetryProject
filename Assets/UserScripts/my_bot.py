@@ -1,5 +1,6 @@
 # Assets/UserScripts/my_bot.py
 # Функция update(robot, dt) вызывается каждый кадр Unity.
+from robot import robot
 
 import math
 

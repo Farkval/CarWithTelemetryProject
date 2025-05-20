@@ -1,9 +1,10 @@
-﻿using System.IO;
+﻿using Assets.Scripts.MapEditor;
+using Assets.Scripts.Robot.Api.Interfaces;
+using Microsoft.Scripting.Hosting;
+using System.IO;
 using UnityEngine;
 using IronPython.Hosting;
-using Microsoft.Scripting.Hosting;
-using Assets.Scripts.Robot.Api.Interfaces;
-using Assets.Scripts.MapEditor;
+using Assets.Scripts.Robot.Api.Python;
 
 [RequireComponent(typeof(MonoBehaviour))]
 public class PythonScriptRunner : MonoBehaviour
@@ -22,6 +23,7 @@ public class PythonScriptRunner : MonoBehaviour
 
     void Awake()
     {
+        RobotPythonStubGenerator.EnsureStub();
         robot = GetComponent<IRobotAPI>();
         engine = Python.CreateEngine();
 
@@ -32,6 +34,7 @@ public class PythonScriptRunner : MonoBehaviour
 
         scope = engine.CreateScope();
         scope.SetVariable("robot", robot);
+        engine.Execute("import robot as _r\n_r.robot = robot", scope);
     }
 
     void Start()
