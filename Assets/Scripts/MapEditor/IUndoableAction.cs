@@ -2,7 +2,7 @@
 {
     public interface IUndoableAction
     {
-        void Undo();
-        void Redo();
+        object Undo();
+        object Redo();
     }
 }

@@ -14,10 +14,8 @@ namespace Assets.Scripts.MapEditor
 
         void OnTriggerEnter(Collider other)
         {
-            Debug.Log("Триггер");
             if (other.CompareTag("Player"))
             {
-                Debug.Log("Триггер на игрока");
                 SceneManager.LoadScene(SceneNameConst.MAIN_MENU_SCENE);
             }
         }

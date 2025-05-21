@@ -1,6 +1,5 @@
 ﻿using Assets.Scripts.MapEditor;
 using Assets.Scripts.MapEditor.Consts;
-using System;
 using System.IO;
 using UnityEngine;
 
@@ -8,8 +7,9 @@ namespace Assets.Scripts.Game.Map
 {
     public class MapLoader : MonoBehaviour
     {
-        [SerializeField] GameObject carPrefab;          // ваша машинка
-        [SerializeField] MapTerrain terrain;            // ссылка из Hierarchy
+        [SerializeField] GameObject carPrefab;
+        [SerializeField] MapTerrain terrain;
+        [SerializeField] DayNightController dayNightController;
 
         void Start()
         {
@@ -23,6 +23,8 @@ namespace Assets.Scripts.Game.Map
             }
 
             var data = JsonUtility.FromJson<MapData>(File.ReadAllText(path));
+
+            dayNightController.OnTimeChanged((int)data.timeOfDay);
 
             // размер и рельеф
             terrain.Init((int)data.size);

@@ -11,14 +11,13 @@ namespace Assets.Scripts.MapEditor
     /// </summary>
     public class MapSerializer : MonoBehaviour
     {
-#if UNITY_EDITOR
-        public void Save(List<PlacedObject> objects, MapSize mapSize)
+        public void Save(List<PlacedObject> objects, MapSize mapSize, TimeOfDay timeOfDay)
         {
             string path = UnityEditor.EditorUtility.SaveFilePanel("Сохранить карту", "", "map.json", "json");
             if (string.IsNullOrEmpty(path)) 
                 return;
 
-            var data = new MapData(objects, mapSize);
+            var data = new MapData(objects, mapSize, timeOfDay);
             var terr = FindFirstObjectByType<MapTerrain>();
             float[,] h = terr.ExportHeights();
             data.heights = new float[h.Length];
@@ -38,6 +37,5 @@ namespace Assets.Scripts.MapEditor
             var data = JsonUtility.FromJson<MapData>(File.ReadAllText(path));
             onLoaded?.Invoke(data);
         }
-#endif
     }
 }

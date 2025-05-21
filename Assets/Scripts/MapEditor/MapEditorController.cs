@@ -26,6 +26,8 @@ namespace Assets.Scripts.MapEditor
         private Vector3 _origPreviewScale = Vector3.one;
         private float _currentScaleFactor = 1f;
 
+        public UndoRedoManager UndoRedoManager { get { return _undoRedo; } }
+
         private void Update()
         {
             HandlePreview();
@@ -33,14 +35,28 @@ namespace Assets.Scripts.MapEditor
             HandleUndoRedo();
         }
 
-        public void UndoCommand() => _undoRedo.Undo();
+        public void UndoCommand()
+        {
+            var res = _undoRedo.Undo();
+            if (res is PlacedObject obj)
+            {
+                _placedObjects.Remove(obj);
+            }
+        }
 
-        public void RedoCommand() => _undoRedo.Redo();
+        public void RedoCommand()
+        {
+            var res =_undoRedo.Redo();
+            if (res is PlacedObject obj)
+            {
+                _placedObjects.Add(obj);
+            }
+        }
 
         public void SaveCommand()
         {
             var mm = FindFirstObjectByType<MapManager>();
-            serializer.Save(_placedObjects, mm.CurrentMapSize);
+            serializer.Save(_placedObjects, mm.CurrentMapSize, mm.CurrentTOD);
         }
 
         public void LoadCommand()
@@ -50,6 +66,7 @@ namespace Assets.Scripts.MapEditor
                 var mm = FindFirstObjectByType<MapManager>();
                 var index = Enum.GetValues(typeof(MapSize));
                 mm.SetMap(data.size);
+                mm.SetEnvironment(data.timeOfDay);
 
                 var terr = FindFirstObjectByType<MapTerrain>();
                 if (data.heights != null && data.heights.Length > 0)
@@ -182,9 +199,11 @@ namespace Assets.Scripts.MapEditor
 
                 PostHandleStartFinishPoint(obj, _activeElement);
 
-                _placedObjects.Add(new PlacedObject(obj, _activeElement));
+                var placedObject = new PlacedObject(obj, _activeElement);
 
-                _undoRedo.AddAction(new PlaceAction(obj, transform));
+                _placedObjects.Add(placedObject);
+
+                _undoRedo.AddAction(new PlaceAction(placedObject));
             }
         }
 
@@ -214,11 +233,19 @@ namespace Assets.Scripts.MapEditor
         {
             if (Input.GetKeyDown(KeyCode.Z) && Input.GetKey(KeyCode.LeftControl))
             {
-                _undoRedo.Undo();
+                var res = _undoRedo.Undo(); 
+                if (res is PlacedObject obj)
+                {
+                    _placedObjects.Remove(obj);
+                }
             }
             if (Input.GetKeyDown(KeyCode.Y) && Input.GetKey(KeyCode.LeftControl))
             {
-                _undoRedo.Redo();
+                var res = _undoRedo.Redo();
+                if (res is PlacedObject obj)
+                {
+                    _placedObjects.Add(obj);
+                }
             }
         }
 

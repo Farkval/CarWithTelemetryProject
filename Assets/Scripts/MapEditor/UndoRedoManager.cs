@@ -29,24 +29,26 @@ namespace Assets.Scripts.MapEditor
             _redoStack.Clear();
         }
 
-        public void Undo()
+        public object Undo()
         {
             if (_undoStack.Count == 0) 
-                return;
+                return default;
 
             var act = _undoStack.Pop();
-            act.Undo();
+            var res = act.Undo();
             _redoStack.Push(act);
+            return res;
         }
 
-        public void Redo()
+        public object Redo()
         {
             if (_redoStack.Count == 0) 
-                return;
+                return default;
 
             var act = _redoStack.Pop();
-            act.Redo();
+            var res = act.Redo();
             _undoStack.Push(act);
+            return res;
         }
     }
 }

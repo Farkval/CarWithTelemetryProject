@@ -8,11 +8,19 @@ namespace Assets.Scripts.MapEditor
     public class MapManager : MonoBehaviour
     {
         [SerializeField] private TMP_Dropdown sizeDropdown;
+        [SerializeField] TMP_Dropdown todDropdown;
         [SerializeField] private MapTerrain terrain;
+        [SerializeField] private DayNightController dayNightController;
 
+        public TimeOfDay CurrentTOD { get; private set; }
         public MapSize CurrentMapSize { get; private set; }
 
         public void SetMap(MapSize mapSize) => OnSizeChanged(-1, incomingMapSize: mapSize);
+
+        public void SetEnvironment(TimeOfDay tod)
+        {
+            todDropdown.value = (int)tod;
+        }
 
         private void Start()
         {
@@ -20,6 +28,19 @@ namespace Assets.Scripts.MapEditor
             sizeDropdown.AddOptions(GetMapSizeOptions());
             sizeDropdown.onValueChanged.AddListener(OnSizeChanged);
             OnSizeChanged(sizeDropdown.value);
+
+            todDropdown.ClearOptions();
+            todDropdown.AddOptions(new List<string>() { "Утро", "День", "Вечер", "Ночь" });
+            todDropdown.onValueChanged.AddListener(i => OnTODChanged((TimeOfDay)i));
+
+            terrain.Init((int)Enum.GetValues(typeof(MapSize)).GetValue(sizeDropdown.value));
+            dayNightController.OnTimeChanged(todDropdown.value);
+        }
+
+        private void OnTODChanged(TimeOfDay tod)
+        {
+            CurrentTOD = tod;
+            dayNightController.OnTimeChanged((int)tod);
         }
 
         private List<string> GetMapSizeOptions()
@@ -33,8 +54,8 @@ namespace Assets.Scripts.MapEditor
             return list;
         }
 
-
         private void OnSizeChanged(int index) => OnSizeChanged(index, null);
+
         private void OnSizeChanged(int mapSizeIndex, MapSize? incomingMapSize = null)
         {
             var mapSize = incomingMapSize ?? (MapSize)Enum.GetValues(typeof(MapSize)).GetValue(mapSizeIndex);

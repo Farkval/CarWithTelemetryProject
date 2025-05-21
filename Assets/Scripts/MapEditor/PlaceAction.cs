@@ -1,28 +1,26 @@
-﻿using UnityEngine;
-
-namespace Assets.Scripts.MapEditor
+﻿namespace Assets.Scripts.MapEditor
 {
     public class PlaceAction : IUndoableAction
     {
-        private readonly GameObject _obj;
-        private readonly Transform _parent;
+        private readonly PlacedObject _placedObject;
 
-        public PlaceAction(GameObject obj, Transform parent)
+        public PlaceAction(PlacedObject placedObject)
         {
-            _obj = obj;
-            _parent = parent;
+            _placedObject = placedObject;
         }
 
-        public void Undo()
+        public object Undo()
         {
-            if (_obj) 
-                _obj.SetActive(false);
+            if (_placedObject.instance) 
+                _placedObject.instance.SetActive(false);
+            return _placedObject;
         }
 
-        public void Redo()
+        public object Redo()
         {
-            if (_obj) 
-                _obj.SetActive(true);
+            if (_placedObject.instance) 
+                _placedObject.instance.SetActive(true);
+            return _placedObject;
         }
     }
 }

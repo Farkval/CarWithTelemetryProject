@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace Assets.Scripts.MapEditor
 {
@@ -14,7 +15,7 @@ namespace Assets.Scripts.MapEditor
         public void Init(int meters)
         {
             _resolution = meters;
-            _heights = new float[_resolution + 1, _resolution + 1];
+            _heights = new float[_resolution + 1, _resolution + 1]; 
             GenerateMesh();
         }
 
@@ -27,7 +28,15 @@ namespace Assets.Scripts.MapEditor
             UpdateMesh();
         }
 
-        void GenerateMesh()
+        public void ModifyWorld(Vector3 worldPos, float delta, float rad)
+        {
+            float half = _resolution * cellSize * 0.5f;
+            int x = Mathf.RoundToInt((worldPos.x + half) / cellSize);
+            int z = Mathf.RoundToInt((worldPos.z + half) / cellSize);
+            ModifyGrid(x, z, delta, rad / cellSize);
+        }
+
+        private void GenerateMesh()
         {
             _mesh = new Mesh 
             { 
@@ -65,7 +74,7 @@ namespace Assets.Scripts.MapEditor
             GetComponent<MeshCollider>().sharedMesh = _mesh;
         }
 
-        void UpdateMesh()
+        private void UpdateMesh()
         {
             var v = _mesh.vertices;
             for (int z = 0; z <= _resolution; z++)
@@ -82,15 +91,7 @@ namespace Assets.Scripts.MapEditor
             GetComponent<MeshCollider>().sharedMesh = _mesh;
         }
 
-        public void ModifyWorld(Vector3 worldPos, float delta, float rad)
-        {
-            float half = _resolution * cellSize * 0.5f;
-            int x = Mathf.RoundToInt((worldPos.x + half) / cellSize);
-            int z = Mathf.RoundToInt((worldPos.z + half) / cellSize);
-            ModifyGrid(x, z, delta, rad / cellSize);
-        }
-
-        void ModifyGrid(int gx, int gz, float delta, float radius)
+        private void ModifyGrid(int gx, int gz, float delta, float radius)
         {
             int rad = Mathf.CeilToInt(radius);
             for (int ix = -rad; ix <= rad; ix++)
