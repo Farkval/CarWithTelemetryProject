@@ -6,22 +6,19 @@ using UnityEngine.UI;
 namespace Assets.Scripts.MapEditor
 {
     [RequireComponent(typeof(Toggle))]
-    public class TerrainBrushTool : MonoBehaviour
+    public class SurfaceBrushTool : MonoBehaviour
     {
-        public TerrainBrushToolMode mode = TerrainBrushToolMode.Raise;
-        public float strength = 0.5f;
+        public SurfaceType surfaceType = SurfaceType.Mud;
         public float radius = 3f;
 
-        private Camera _cam;
         private MapTerrain _terrain;
         private Toggle _toggle;
         private UndoRedoManager _undo;
+        private SurfaceType[,] _before;
         private Coroutine _editRoutine;
-        private float[,] _beforeHeights;
 
         void Awake()
         {
-            _cam = Camera.main;
             _terrain = FindFirstObjectByType<MapTerrain>();
             _toggle = GetComponent<Toggle>();
             _undo = FindFirstObjectByType<MapEditorController>().UndoRedoManager;
@@ -38,21 +35,19 @@ namespace Assets.Scripts.MapEditor
 
         private IEnumerator EditLoop()
         {
-            _beforeHeights = _terrain.GetHeightsCopy();
+            _before = (SurfaceType[,])_terrain.SurfaceArray.Clone();
             while (Input.GetMouseButton(0))
             {
                 if (!EventSystem.current.IsPointerOverGameObject()
-                    && Physics.Raycast(_cam.ScreenPointToRay(Input.mousePosition),
+                    && Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition),
                                        out var hit, 500f, LayerMask.GetMask("Default")))
                 {
-                    float d = (mode == TerrainBrushToolMode.Raise ? 1 : -1)
-                               * strength * Time.deltaTime;
-                    _terrain.ModifyWorld(hit.point, d, radius);
+                    _terrain.ModifySurfaceWorld(hit.point, surfaceType, radius);
                 }
                 yield return null;
             }
-            var after = _terrain.GetHeightsCopy();
-            _undo.AddAction(new TerrainModifyAction(_terrain, _beforeHeights, after));
+            var after = (SurfaceType[,])_terrain.SurfaceArray.Clone();
+            _undo.AddAction(new SurfaceModifyAction(_terrain, _before, after));
             _editRoutine = null;
         }
     }

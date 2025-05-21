@@ -5,50 +5,54 @@ namespace Assets.Scripts.MapEditor
 {
     public class UndoRedoManager
     {
-        private readonly int _capacity;
-        private readonly Stack<IUndoableAction> _undoStack = new();
-        private readonly Stack<IUndoableAction> _redoStack = new();
+        private int index = 0;
+        readonly int _capacity;
+        readonly List<IUndoableAction> _history = new();
+        int _cursor = -1;               // индекс последней выполненной операции
 
-        public UndoRedoManager(int capacity)
+        public UndoRedoManager(int capacity = 100)
         {
             _capacity = Mathf.Clamp(capacity, 1, 1000);
         }
 
         public void AddAction(IUndoableAction action)
         {
-            if (_undoStack.Count >= _capacity)
-            {
-                // Сбрасываем самый старый
-                var temp = new Stack<IUndoableAction>(_undoStack);
-                temp.Pop();
-                _undoStack.Clear();
-                foreach (var a in temp)
-                    _undoStack.Push(a);
-            }
-            _undoStack.Push(action);
-            _redoStack.Clear();
+            // отбрасываем «красную часть» истории, если сделали новую операцию
+            if (_cursor < _history.Count - 1)
+                _history.RemoveRange(_cursor + 1, _history.Count - _cursor - 1);
+
+            // ограничиваем вместимость
+            if (_history.Count == _capacity)
+                _history.RemoveAt(0);
+            else
+                _cursor++;
+
+            _history.Add(action);
+
+            Debug.Log($"{index++}: {_cursor}");
         }
 
         public object Undo()
         {
-            if (_undoStack.Count == 0) 
-                return default;
-
-            var act = _undoStack.Pop();
-            var res = act.Undo();
-            _redoStack.Push(act);
-            return res;
+            if (_cursor < 0) return null;
+            var act = _history[_cursor--];
+            Debug.Log($"{index++}: {_cursor}");
+            return act.Undo();
         }
 
         public object Redo()
         {
-            if (_redoStack.Count == 0) 
-                return default;
+            if (_cursor + 1 >= _history.Count) return null;
+            var act = _history[++_cursor];
+            Debug.Log($"{index++}: {_cursor}");
+            return act.Redo();
+        }
 
-            var act = _redoStack.Pop();
-            var res = act.Redo();
-            _undoStack.Push(act);
-            return res;
+        /* ───────── служебное ───────── */
+        public void Clear()
+        {
+            _history.Clear();
+            _cursor = -1;
         }
     }
 }

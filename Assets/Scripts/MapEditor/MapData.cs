@@ -9,6 +9,7 @@ namespace Assets.Scripts.MapEditor
         public TimeOfDay timeOfDay;
         public MapSize size;
         public float[] heights;
+        public byte[] surfaces;
         public List<ElementInstanceData> instances = new();
 
         public MapData(List<PlacedObject> objects, MapSize mapSize, TimeOfDay timeOfDay)

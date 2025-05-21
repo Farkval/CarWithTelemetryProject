@@ -22,6 +22,7 @@ namespace Assets.Scripts.MapEditor
             float[,] h = terr.ExportHeights();
             data.heights = new float[h.Length];
             Buffer.BlockCopy(h, 0, data.heights, 0, sizeof(float) * h.Length);
+            data.surfaces = terr.ExportSurfaces();
 
             string json = JsonUtility.ToJson(data, true);
             File.WriteAllText(path, json);

@@ -78,6 +78,15 @@ namespace Assets.Scripts.MapEditor
                 }
                 else terr.Init((int)data.size);   // если старая карта без рельефа
 
+                if (data.surfaces != null && data.surfaces.Length == (int)data.size * (int)data.size)
+                {
+                    terr.ImportSurfaces((int)data.size, data.surfaces);
+                }
+                else
+                {
+                    terr.Init((int)data.size); // чтобы создалась пустая поверхность
+                }
+
                 foreach (var po in _placedObjects)
                     Destroy(po.instance);
                 _placedObjects.Clear();
