@@ -1,5 +1,7 @@
-﻿using Assets.Scripts.MapEditor;
-using Assets.Scripts.MapEditor.Consts;
+﻿using Assets.Scripts.MapEditor.Consts;
+using Assets.Scripts.MapEditor.Controllers;
+using Assets.Scripts.MapEditor.Models;
+using Assets.Scripts.MapEditor.Triggers;
 using System.IO;
 using UnityEngine;
 
@@ -34,6 +36,10 @@ namespace Assets.Scripts.Game.Map
                 float[,] h = new float[n + 1, n + 1];
                 System.Buffer.BlockCopy(data.heights, 0, h, 0, sizeof(float) * data.heights.Length);
                 terrain.ImportHeights(h);
+            }
+            if (data.surfaces != null && data.surfaces.Length == (int)data.size * (int)data.size)
+            {
+                terrain.ImportSurfaces((int)data.size, data.surfaces);
             }
 
             // объекты

@@ -5,6 +5,7 @@ using System.IO;
 using UnityEngine;
 using IronPython.Hosting;
 using Assets.Scripts.Robot.Api.Python;
+using Assets.Scripts.MapEditor.Controllers;
 
 [RequireComponent(typeof(MonoBehaviour))]
 public class PythonScriptRunner : MonoBehaviour

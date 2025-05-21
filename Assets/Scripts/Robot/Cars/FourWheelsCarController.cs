@@ -1,4 +1,8 @@
-﻿using Assets.Scripts.Robot.Api.Interfaces;
+﻿using Assets.Scripts.Consts;
+using Assets.Scripts.MapEditor;
+using Assets.Scripts.MapEditor.Controllers;
+using Assets.Scripts.MapEditor.Models.Enums;
+using Assets.Scripts.Robot.Api.Interfaces;
 using Assets.Scripts.Robot.Models.Enums;
 using System.Collections.Generic;
 using UnityEngine;
@@ -59,6 +63,8 @@ namespace Assets.Scripts.Robot
 
         // friction templates
         WheelFrictionCurve _flFwd0, _flSide0, _frFwd0, _frSide0, _rlFwd0, _rlSide0, _rrFwd0, _rrSide0;
+
+        private MapTerrain _terrain;
         #endregion
 
         void Awake()
@@ -74,6 +80,7 @@ namespace Assets.Scripts.Robot
 
             // собрать лидары в детях
             Lidars.AddRange(GetComponentsInChildren<ILidar>());
+            _terrain = FindFirstObjectByType<MapTerrain>();
         }
 
         void FixedUpdate()
@@ -179,49 +186,28 @@ namespace Assets.Scripts.Robot
         #region ► friction (без изменений визуально)
         void UpdateWheelFriction()
         {
-            // Обновляем переднее левое колесо
-            WheelFrictionCurve fF = frontLeftWheel.forwardFriction;
-            fF.asymptoteValue = _flFwd0.asymptoteValue * globalFrictionMultiplier * forwardFrictionMultiplier;
-            fF.extremumValue = _flFwd0.extremumValue * globalFrictionMultiplier * forwardFrictionMultiplier;
-            frontLeftWheel.forwardFriction = fF;
+            ApplyFrictionToWheel(frontLeftWheel, _flFwd0, _flSide0);
+            ApplyFrictionToWheel(frontRightWheel, _frFwd0, _frSide0);
+            ApplyFrictionToWheel(rearLeftWheel, _rlFwd0, _rlSide0);
+            ApplyFrictionToWheel(rearRightWheel, _rrFwd0, _rrSide0);
+        }
 
-            WheelFrictionCurve sF = frontLeftWheel.sidewaysFriction;
-            sF.asymptoteValue = _frSide0.asymptoteValue * globalFrictionMultiplier * sidewaysFrictionMultiplier;
-            sF.extremumValue = _frSide0.extremumValue * globalFrictionMultiplier * sidewaysFrictionMultiplier;
-            frontLeftWheel.sidewaysFriction = sF;
+        void ApplyFrictionToWheel(WheelCollider wc,
+                                   WheelFrictionCurve baseFwd,
+                                   WheelFrictionCurve baseSide)
+        {
+            SurfaceType st = _terrain.GetSurfaceTypeAt(wc.transform.position);
+            (float kFwd, float kSide) = SurfaceFrictionConst.SurfaceFriction.TryGetValue(st, out var k) ? k : (1, 1);
 
-            // Переднее правое колесо
-            fF = frontRightWheel.forwardFriction;
-            fF.asymptoteValue = _frFwd0.asymptoteValue * globalFrictionMultiplier * forwardFrictionMultiplier;
-            fF.extremumValue = _frFwd0.extremumValue * globalFrictionMultiplier * forwardFrictionMultiplier;
-            frontRightWheel.forwardFriction = fF;
+            // глобальные мультипликаторы пользователя
+            kFwd *= globalFrictionMultiplier * forwardFrictionMultiplier;
+            kSide *= globalFrictionMultiplier * sidewaysFrictionMultiplier;
 
-            sF = frontRightWheel.sidewaysFriction;
-            sF.asymptoteValue = _frSide0.asymptoteValue * globalFrictionMultiplier * sidewaysFrictionMultiplier;
-            sF.extremumValue = _frSide0.extremumValue * globalFrictionMultiplier * sidewaysFrictionMultiplier;
-            frontRightWheel.sidewaysFriction = sF;
+            baseFwd.asymptoteValue = baseFwd.extremumValue = baseFwd.extremumValue * kFwd;
+            baseSide.asymptoteValue = baseSide.extremumValue = baseSide.extremumValue * kSide;
 
-            // Заднее левое колесо
-            fF = rearLeftWheel.forwardFriction;
-            fF.asymptoteValue = _rlFwd0.asymptoteValue * globalFrictionMultiplier * forwardFrictionMultiplier;
-            fF.extremumValue = _rlFwd0.extremumValue * globalFrictionMultiplier * forwardFrictionMultiplier;
-            rearLeftWheel.forwardFriction = fF;
-
-            sF = rearLeftWheel.sidewaysFriction;
-            sF.asymptoteValue = _rlSide0.asymptoteValue * globalFrictionMultiplier * sidewaysFrictionMultiplier;
-            sF.extremumValue = _rlSide0.extremumValue * globalFrictionMultiplier * sidewaysFrictionMultiplier;
-            rearLeftWheel.sidewaysFriction = sF;
-
-            // Заднее правое колесо
-            fF = rearRightWheel.forwardFriction;
-            fF.asymptoteValue = _rrFwd0.asymptoteValue * globalFrictionMultiplier * forwardFrictionMultiplier;
-            fF.extremumValue = _rrFwd0.extremumValue * globalFrictionMultiplier * forwardFrictionMultiplier;
-            rearRightWheel.forwardFriction = fF;
-
-            sF = rearRightWheel.sidewaysFriction;
-            sF.asymptoteValue = _rrSide0.asymptoteValue * globalFrictionMultiplier * sidewaysFrictionMultiplier;
-            sF.extremumValue = _rrSide0.extremumValue * globalFrictionMultiplier * sidewaysFrictionMultiplier;
-            rearRightWheel.sidewaysFriction = sF;
+            wc.forwardFriction = baseFwd;
+            wc.sidewaysFriction = baseSide;
         }
         #endregion
 
