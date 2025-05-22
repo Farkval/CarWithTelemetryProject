@@ -49,7 +49,6 @@ namespace Assets.Scripts.MapEditor.Controllers
         {
             var tod = (TimeOfDay)Enum.GetValues(typeof(TimeOfDay)).GetValue(index);
             CurrentTOD = tod;
-            Debug.Log($"Current tod seted: {CurrentTOD}");
             dayNightController.OnTimeChanged((int)tod);
         }
 

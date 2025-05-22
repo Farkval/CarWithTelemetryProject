@@ -24,7 +24,6 @@ namespace Assets.Scripts.MapEditor.Controllers
         private ElementData _activeElement;
         private GameObject _previewInstance;
         private GameObject _spawnInstance, _finishInstance;
-        private PlacedObject _selected;
 
         private readonly UndoRedoController _undoRedo = new UndoRedoController(100);
         private readonly List<PlacedObject> _placedObjects = new();

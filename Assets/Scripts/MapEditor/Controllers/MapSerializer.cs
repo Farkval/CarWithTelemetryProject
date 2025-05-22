@@ -21,7 +21,6 @@ namespace Assets.Scripts.MapEditor.Controllers
             if (string.IsNullOrEmpty(path)) return;      // окно вызываем ОДИН раз
 
             var data = new MapData(objs, size, tod);
-            Debug.Log($"{data.timeOfDay}");
             var terr = FindFirstObjectByType<MapTerrain>();
 
             // meta
@@ -33,7 +32,6 @@ namespace Assets.Scripts.MapEditor.Controllers
             data.surfaces = terr.ExportSurfaces();
 
             File.WriteAllText(path, JsonUtility.ToJson(data, true));
-            Debug.Log($"Map saved: {path}");
         }
 
         public void Load(Action<MapData> onLoaded)

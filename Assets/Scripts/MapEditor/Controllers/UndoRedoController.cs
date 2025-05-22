@@ -6,7 +6,6 @@ namespace Assets.Scripts.MapEditor.Controllers
 {
     public class UndoRedoController
     {
-        private int index = 0;
         readonly int _capacity;
         readonly List<IUndoableAction> _history = new();
         int _cursor = -1;               // индекс последней выполненной операции
@@ -29,15 +28,12 @@ namespace Assets.Scripts.MapEditor.Controllers
                 _cursor++;
 
             _history.Add(action);
-
-            Debug.Log($"{index++}: {_cursor}");
         }
 
         public object Undo()
         {
             if (_cursor < 0) return null;
             var act = _history[_cursor--];
-            Debug.Log($"{index++}: {_cursor}");
             return act.Undo();
         }
 
@@ -45,7 +41,6 @@ namespace Assets.Scripts.MapEditor.Controllers
         {
             if (_cursor + 1 >= _history.Count) return null;
             var act = _history[++_cursor];
-            Debug.Log($"{index++}: {_cursor}");
             return act.Redo();
         }
 
