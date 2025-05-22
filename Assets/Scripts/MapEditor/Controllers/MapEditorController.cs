@@ -3,6 +3,7 @@ using Assets.Scripts.MapEditor.Consts;
 using Assets.Scripts.MapEditor.Models;
 using Assets.Scripts.MapEditor.Models.Enums;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -18,21 +19,27 @@ namespace Assets.Scripts.MapEditor.Controllers
         [Header("Ссылки")]
         [SerializeField] private Camera sceneCamera;
         [SerializeField] private Transform previewParent;
-        [SerializeField] private MapSerializer serializer;
+        [SerializeField] private MapSerializer mapSerializer;
 
         private ElementData _activeElement;
         private GameObject _previewInstance;
         private GameObject _spawnInstance, _finishInstance;
+        private PlacedObject _selected;
 
         private readonly UndoRedoController _undoRedo = new UndoRedoController(100);
         private readonly List<PlacedObject> _placedObjects = new();
         private Vector3 _origPreviewScale = Vector3.one;
         private float _currentScaleFactor = 1f;
+        private Dictionary<Renderer, Color> _original = new();
+        private PlacedObject _dragObj;           // объект, который сейчас тянут
+        private Coroutine _dragRoutine;       // сама корутина-перетаскивания
+        private Vector3 _beforePos, _beforeRot, _beforeScale;
 
         public UndoRedoController UndoRedoManager { get { return _undoRedo; } }
 
         private void Update()
         {
+            HandleSelection();
             HandlePreview();
             HandlePlacement();
             HandleUndoRedo();
@@ -58,37 +65,28 @@ namespace Assets.Scripts.MapEditor.Controllers
 
         public void SaveCommand()
         {
-            var mm = FindFirstObjectByType<MapController>();
-            serializer.Save(_placedObjects, mm.CurrentMapSize, mm.CurrentTOD);
+            var mc = FindFirstObjectByType<MapController>();
+            mapSerializer.Save(_placedObjects, mc.CurrentMapSize, mc.CurrentTOD);
         }
 
         public void LoadCommand()
         {
-            serializer.Load(data =>
+            mapSerializer.Load(data =>
             {
                 var mm = FindFirstObjectByType<MapController>();
                 var index = Enum.GetValues(typeof(MapSize));
-                mm.SetMap(data.size);
+                mm.SetMap(data.mapSize);
                 mm.SetEnvironment(data.timeOfDay);
 
                 var terr = FindFirstObjectByType<MapTerrain>();
-                if (data.heights != null && data.heights.Length > 0)
-                {
-                    int n = (int)Mathf.Sqrt(data.heights.Length) - 1;
-                    float[,] h = new float[n + 1, n + 1];
-                    Buffer.BlockCopy(data.heights, 0, h, 0, sizeof(float) * data.heights.Length);
-                    terr.ImportHeights(h);
-                }
-                else terr.Init((int)data.size);   // если старая карта без рельефа
 
-                if (data.surfaces != null && data.surfaces.Length == (int)data.size * (int)data.size)
-                {
-                    terr.ImportSurfaces((int)data.size, data.surfaces);
-                }
-                else
-                {
-                    terr.Init((int)data.size); // чтобы создалась пустая поверхность
-                }
+                if (data.heights != null && data.heightRes > 0)
+                    terr.ImportHeights(data.heightRes, data.heights);
+                else terr.Init((int)data.mapSize);
+
+                // покрытие
+                if (data.surfaces != null && data.surfaceRes > 0)
+                    terr.ImportSurfaces(data.surfaceRes, data.surfaces);
 
                 foreach (var po in _placedObjects)
                     Destroy(po.instance);
@@ -120,17 +118,132 @@ namespace Assets.Scripts.MapEditor.Controllers
         public void SetActiveElement(ElementData data)
         {
             _activeElement = data;
-            if (_previewInstance != null)
-                Destroy(_previewInstance);
+
+            if (_previewInstance) Destroy(_previewInstance);
 
             if (data != null)
             {
                 _previewInstance = Instantiate(data.prefab, previewParent);
                 SetLayerRecursively(_previewInstance, LayerMask.NameToLayer("Ignore Raycast"));
+
+                // ── Хайлайт превью тем же способом, что и выбранный объект
+                foreach (var r in _previewInstance.GetComponentsInChildren<Renderer>())
+                {
+                    if (r.sharedMaterial.HasFloat("_Outline"))
+                        r.material.SetFloat("_Outline", 1f);
+                    else
+                        r.material.color = Color.yellow;
+                }
+
                 _origPreviewScale = _previewInstance.transform.localScale;
                 _currentScaleFactor = 1f;
-                _previewInstance.transform.position = new Vector3(_previewInstance.transform.position.x, 0, _previewInstance.transform.position.z);
+
+                Plane g = new(Vector3.up, 0);
+                var ray = sceneCamera.ScreenPointToRay(Input.mousePosition);
+                if (g.Raycast(ray, out float dst))
+                    _previewInstance.transform.position = ray.GetPoint(dst);
             }
+        }
+
+        void HandleSelection()
+        {
+            /* 1. Если уже тащим – ничего не делаем */
+            if (_dragRoutine != null || _activeElement != null) return;
+
+            /* 2. Кликнули ЛКМ? */
+            if (Input.GetMouseButtonDown(0) &&
+                !EventSystem.current.IsPointerOverGameObject())
+            {
+                if (Physics.Raycast(sceneCamera.ScreenPointToRay(Input.mousePosition),
+                                    out var hit, 500f, LayerMask.GetMask("Default")))
+                {
+                    // ищем объект среди размещённых
+                    _dragObj = _placedObjects.Find(p => p.instance == hit.collider.gameObject
+                                                     || p.instance.transform.IsChildOf(hit.collider.transform));
+                    if (_dragObj != null)
+                    {
+                        _dragRoutine = StartCoroutine(DragObjectLoop(_dragObj));
+                    }
+                }
+            }
+        }
+
+        IEnumerator DragObjectLoop(PlacedObject po)
+        {
+            Transform tr = po.instance.transform;
+            Highlight(po, true);             // вкл. подсветку
+
+            // зафиксируем состояние «до»
+            _beforePos = tr.position;
+            _beforeRot = tr.rotation.eulerAngles;
+            _beforeScale = tr.localScale;
+
+            MapTerrain terr = FindFirstObjectByType<MapTerrain>();
+            float half = terr.MapHalfWorld;      // helper свойство в MapTerrain
+
+            bool changed = false;
+
+            while (Input.GetMouseButton(0))
+            {
+                // — перемещение / поворот / масштаб — точь-в-точь как было
+                if (Input.GetKey(KeyCode.R))                      // ROTATE
+                {
+                    float dx = Input.GetAxis("Mouse X");
+                    tr.Rotate(Vector3.up, dx * 3f, Space.World);
+                    changed = true;
+                }
+                else if (Input.GetKey(KeyCode.S))                 // SCALE
+                {
+                    float dy = Input.GetAxis("Mouse Y");
+                    float k = 1 + dy * .01f;
+                    tr.localScale *= k;
+                    changed = true;
+                }
+                else                                              // MOVE
+                {
+                    Plane g = new(Vector3.up, 0);
+                    var ray = sceneCamera.ScreenPointToRay(Input.mousePosition);
+                    if (g.Raycast(ray, out float dst))
+                    {
+                        Vector3 p = ray.GetPoint(dst);
+                        // «скольжение» по границе
+                        p.x = Mathf.Clamp(p.x, -half, half);
+                        p.z = Mathf.Clamp(p.z, -half, half);
+                        tr.position = p;
+                        changed = true;
+                    }
+                }
+                yield return null;
+            }
+
+            Highlight(po, false);            // выкл. подсветку
+
+            if (changed)
+            {
+                _undoRedo.AddAction(
+                    new TransformModifyAction(
+                        po,
+                        _beforePos, _beforeRot, _beforeScale,
+                        tr.position, tr.rotation.eulerAngles, tr.localScale));
+            }
+
+            _dragRoutine = null;
+            _dragObj = null;
+        }
+
+        void Highlight(PlacedObject po, bool state)
+        {
+            var r = po.instance.GetComponentInChildren<Renderer>();
+            if (!r) 
+                return;
+
+            if (!_original.ContainsKey(r))                    // кэш оригинала
+                _original[r] = r.material.color;
+
+            if (r.sharedMaterial.HasFloat("_Outline"))
+                r.material.SetFloat("_Outline", state ? 1f : 0f);
+            else
+                r.material.color = state ? Color.yellow : _original[r];
         }
 
         private void HandlePreview()
@@ -148,15 +261,28 @@ namespace Assets.Scripts.MapEditor.Controllers
             if (!rotating && !scaling && !heighting)
             {
                 Ray ray = sceneCamera.ScreenPointToRay(Input.mousePosition);
-                if (Physics.Raycast(ray, out RaycastHit hit, 1000f, LayerMask.GetMask("Default")))
+                Vector3 p;
+                if (Physics.Raycast(ray, out var hit, 1000f, LayerMask.GetMask("Default")))
                 {
-                    Vector3 point = hit.point;
-                    // Привязка к ближайшему центру мелкой ячейки
-                    float step = 0.05f;
-                    point.x = Mathf.Round(point.x / step) * step;
-                    point.z = Mathf.Round(point.z / step) * step;
-                    _previewInstance.transform.position = new Vector3(point.x, _previewInstance.transform.position.y, point.z);
+                    p = hit.point;
                 }
+                else
+                {
+                    // пересекаем плоскость Y=0
+                    new Plane(Vector3.up, 0).Raycast(ray, out float dist);
+                    p = ray.GetPoint(dist);
+                }
+
+                float h = FindFirstObjectByType<MapTerrain>().MapHalfWorld;
+                p.x = Mathf.Clamp(p.x, -h, h);
+                p.z = Mathf.Clamp(p.z, -h, h);
+
+                const float STEP = .05f;                     // привязка
+                p.x = Mathf.Round(p.x / STEP) * STEP;
+                p.z = Mathf.Round(p.z / STEP) * STEP;
+
+                _previewInstance.transform.position =
+                    new Vector3(p.x, _previewInstance.transform.position.y, p.z);
             }
 
             // Вращение

@@ -13,32 +13,37 @@ namespace Assets.Scripts.MapEditor.Controllers
     /// </summary>
     public class MapSerializer : MonoBehaviour
     {
-        public void Save(List<PlacedObject> objects, MapSize mapSize, TimeOfDay timeOfDay)
+        // Assets/Scripts/MapEditor/Controllers/MapSerializer.cs
+        public void Save(List<PlacedObject> objs, MapSize size, TimeOfDay tod)
         {
-            string path = UnityEditor.EditorUtility.SaveFilePanel("Сохранить карту", "", "map.json", "json");
-            if (string.IsNullOrEmpty(path)) 
-                return;
+            var path = UnityEditor.EditorUtility.SaveFilePanel(
+                       "Сохранить карту", "", "map", "json");
+            if (string.IsNullOrEmpty(path)) return;      // окно вызываем ОДИН раз
 
-            var data = new MapData(objects, mapSize, timeOfDay);
+            var data = new MapData(objs, size, tod);
+            Debug.Log($"{data.timeOfDay}");
             var terr = FindFirstObjectByType<MapTerrain>();
-            float[,] h = terr.ExportHeights();
-            data.heights = new float[h.Length];
-            Buffer.BlockCopy(h, 0, data.heights, 0, sizeof(float) * h.Length);
+
+            // meta
+            data.heightRes = terr.HeightResolution;     // добавьте геттер-свойства
+            data.surfaceRes = terr.SurfaceResolution;
+
+            // сами массивы
+            data.heights = terr.ExportHeights();
             data.surfaces = terr.ExportSurfaces();
 
-            string json = JsonUtility.ToJson(data, true);
-            File.WriteAllText(path, json);
-            Debug.Log($"Map saved to {path}");
+            File.WriteAllText(path, JsonUtility.ToJson(data, true));
+            Debug.Log($"Map saved: {path}");
         }
 
         public void Load(Action<MapData> onLoaded)
         {
-            string path = UnityEditor.EditorUtility.OpenFilePanel("Загрузить карту", "", "json");
-            if (string.IsNullOrEmpty(path)) 
-                return;
+            var path = UnityEditor.EditorUtility.OpenFilePanel("Загрузить карту", "", "json");
+            if (string.IsNullOrEmpty(path)) return;
 
             var data = JsonUtility.FromJson<MapData>(File.ReadAllText(path));
             onLoaded?.Invoke(data);
         }
+
     }
 }

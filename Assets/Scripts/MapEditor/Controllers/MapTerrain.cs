@@ -7,134 +7,182 @@ namespace Assets.Scripts.MapEditor.Controllers
     [RequireComponent(typeof(MeshFilter), typeof(MeshCollider))]
     public class MapTerrain : MonoBehaviour
     {
-        [SerializeField] private float cellSize = 1f;
-        [Header("Surface Colors (Vertex)")]
-        public Color grassColor = Color.green;
-        public Color mudColor = new Color(0.45f, 0.25f, 0.1f);
-        public Color gravelColor = new Color(0.5f, 0.5f, 0.5f);
-        public Color waterColor = new Color(0.1f, 0.3f, 0.8f);
-        public Color iceColor = new Color(0.8f, 0.9f, 1f);
+        [Header("Resolution settings")]
+        [Tooltip("Сколько ВЕРШИН высоты приходится на 1 метр" +
+                 " (1 = по-старому, 2 = каждые 0.5 м, 4 = каждые 0.25 м)")]
+        [Min(1)] public int heightSubDiv = 1;
 
-        private float[,] _heights;
-        private SurfaceType[,] _surface;
-        private Mesh _mesh;
-        private int _resolution;
-        private Color[] _vertColors;
+        [Tooltip("Сколько ячеек покрытия приходится на 1 метр" +
+                 " (4 даст минимальный мазок 0.25 м)")]
+        [Min(1)] public int surfaceSubDiv = 4;
+
+        [SerializeField] float cellSize = 1f;                      // базовый метр
+
+        [Header("Surface Colors (vertex)")]
+        public Color grassColor = Color.green;
+        public Color mudColor = new(.45f, .25f, .10f);
+        public Color gravelColor = new(.50f, .50f, .50f);
+        public Color waterColor = new(.10f, .30f, .80f);
+        public Color iceColor = new(.80f, .90f, 1f);
+
+        // ---------- runtime-поля ----------
+        // высоты
+        int _heRes;      // узлов по стороне
+        float _heCell;     // шаг по высоте  (м)
+        float[,] _heights;
+
+        // покрытие
+        int _suRes;      // плиток по стороне
+        float _suCell;     // шаг по покрытию (м)
+        SurfaceType[,] _surface;
+
+        // визуализация
+        Mesh _mesh;
+        Color[] _vertColors;
 
         public SurfaceType[,] SurfaceArray => _surface;
+        public int HeightResolution => _heRes;
+        public int SurfaceResolution => _suRes;
+        public float MapHalfWorld => _heRes * _heCell * 0.5f;
 
+        // ------------------------------------------------------------ public API
         public void Init(int meters)
         {
-            _resolution = meters;
-            _heights = new float[_resolution + 1, _resolution + 1];
-            _surface = new SurfaceType[_resolution, _resolution];
-            // default Grass
-            for (int x = 0; x < _resolution; x++)
-                for (int z = 0; z < _resolution; z++)
+            // высоты
+            _heRes = meters * heightSubDiv;
+            _heCell = cellSize / heightSubDiv;
+            _heights = new float[_heRes + 1, _heRes + 1];
+
+            // покрытие
+            _suRes = meters * surfaceSubDiv;
+            _suCell = cellSize / surfaceSubDiv;
+            _surface = new SurfaceType[_suRes, _suRes];
+            for (int x = 0; x < _suRes; x++)
+                for (int z = 0; z < _suRes; z++)
                     _surface[x, z] = SurfaceType.Grass;
 
             GenerateMesh();
             ApplyVertexColors();
         }
 
-        #region Heights
+        #region ─── helpers ──────────────────────────────────────────────────────────
+        public bool InsideXZ(Vector3 p)                       // находится в границах?
+        {
+            float h = MapHalfWorld;
+            return p.x >= -h && p.x <= h && p.z >= -h && p.z <= h;
+        }
+        #endregion
 
-        public float[,] ExportHeights() => _heights;
-        public void ImportHeights(float[,] h) { _heights = h; UpdateMesh(); }
+        #region ─── HEIGHTS ────────────────────────────────────────────────────
+        public float[] ExportHeights()
+        {
+            var flat = new float[(_heRes + 1) * (_heRes + 1)];
+            Buffer.BlockCopy(_heights, 0, flat, 0, sizeof(float) * flat.Length);
+            return flat;
+        }
+
+        public void ImportHeights(int res, float[] flat)
+        {
+            _heRes = res;
+            _heCell = cellSize / heightSubDiv;
+            _heights = new float[_heRes + 1, _heRes + 1];
+            Buffer.BlockCopy(flat, 0, _heights, 0, sizeof(float) * flat.Length);
+            UpdateMesh();
+        }
 
         public float[,] GetHeightsCopy()
         {
-            var c = new float[_resolution + 1, _resolution + 1];
+            var c = new float[_heRes + 1, _heRes + 1];
             Array.Copy(_heights, c, _heights.Length);
             return c;
         }
         public void SetHeights(float[,] h) { _heights = h; UpdateMesh(); }
-
         #endregion
 
-        #region Surface
-
+        #region ─── SURFACE ────────────────────────────────────────────────────
         public byte[] ExportSurfaces()
         {
-            int len = _resolution * _resolution;
+            int len = _suRes * _suRes;
             var arr = new byte[len];
-
-            for (int y = 0; y < _resolution; y++)
-            {
-                for (int x = 0; x < _resolution; x++)
-                {
-                    int index = y * _resolution + x;
-                    arr[index] = (byte)_surface[x, y];
-                }
-            }
-
+            for (int y = 0; y < _suRes; y++)
+                for (int x = 0; x < _suRes; x++)
+                    arr[y * _suRes + x] = (byte)_surface[x, y];
             return arr;
         }
 
         public void ImportSurfaces(int res, byte[] data)
         {
-            _resolution = res;
-            _surface = new SurfaceType[res, res];
+            _suRes = res;
+            _suCell = cellSize / surfaceSubDiv;
+            _surface = new SurfaceType[_suRes, _suRes];
 
-            for (int y = 0; y < res; y++)
-            {
-                for (int x = 0; x < res; x++)
-                {
-                    int index = y * res + x;
-                    _surface[x, y] = (SurfaceType)data[index];
-                }
-            }
+            for (int y = 0; y < _suRes; y++)
+                for (int x = 0; x < _suRes; x++)
+                    _surface[x, y] = (SurfaceType)data[y * _suRes + x];
 
             ApplyVertexColors();
         }
 
         public SurfaceType SurfaceAt(Vector3 worldPos)
         {
-            float half = _resolution * cellSize * .5f;
-            int x = Mathf.FloorToInt((worldPos.x + half) / cellSize);
-            int z = Mathf.FloorToInt((worldPos.z + half) / cellSize);
-            if (x < 0 || z < 0 || x >= _resolution || z >= _resolution) return SurfaceType.Grass;
-            return _surface[x, z];
+            float half = _heRes * _heCell * .5f;
+            int sx = Mathf.FloorToInt((worldPos.x + half) / _suCell);
+            int sz = Mathf.FloorToInt((worldPos.z + half) / _suCell);
+            if (sx < 0 || sz < 0 || sx >= _suRes || sz >= _suRes) return SurfaceType.Grass;
+            return _surface[sx, sz];
         }
 
-        public void ModifySurfaceWorld(Vector3 worldPos, SurfaceType type, float radius)
+        public void ModifySurfaceWorld(Vector3 wp, SurfaceType type, float radius)
         {
-            float half = _resolution * cellSize * .5f;
-            int cx = Mathf.RoundToInt((worldPos.x + half) / cellSize);
-            int cz = Mathf.RoundToInt((worldPos.z + half) / cellSize);
-            int rad = Mathf.CeilToInt(radius / cellSize);
+            float half = _heRes * _heCell * .5f;
+            int cx = Mathf.RoundToInt((wp.x + half) / _suCell);
+            int cz = Mathf.RoundToInt((wp.z + half) / _suCell);
+            int rad = Mathf.CeilToInt(radius / _suCell);
+
             for (int ix = -rad; ix <= rad; ix++)
                 for (int iz = -rad; iz <= rad; iz++)
                 {
                     int px = cx + ix, pz = cz + iz;
-                    if (px < 0 || pz < 0 || px >= _resolution || pz >= _resolution) continue;
-                    if (ix * ix + iz * iz > rad * rad) continue;
+                    if (px < 0 || pz < 0 || px >= _suRes || pz >= _suRes) continue;
+                    if (ix * ix + iz * iz > rad * rad) continue;        // круг
                     _surface[px, pz] = type;
                 }
             ApplyVertexColors();
         }
 
+        public SurfaceType[,] GetSurfaceCopy()
+        {
+            var dst = new SurfaceType[_suRes, _suRes];
+            Array.Copy(_surface, dst, _surface.Length);
+            return dst;
+        }
+        public void SetSurfaces(SurfaceType[,] src)
+        {
+            _surface = src;
+            ApplyVertexColors();
+        }
         #endregion
 
-        #region Mesh
-
-        private void GenerateMesh()
+        #region ─── MESH ───────────────────────────────────────────────────────
+        void GenerateMesh()
         {
             _mesh = new Mesh { name = "TerrainMesh" };
-            var verts = new Vector3[(_resolution + 1) * (_resolution + 1)];
-            var uvs = new Vector2[verts.Length];
-            var tris = new int[_resolution * _resolution * 6];
-            int t = 0; float half = _resolution * cellSize * .5f;
+            Vector3[] verts = new Vector3[(_heRes + 1) * (_heRes + 1)];
+            Vector2[] uvs = new Vector2[verts.Length];
+            int[] tris = new int[_heRes * _heRes * 6];
 
-            for (int z = 0; z <= _resolution; z++)
-                for (int x = 0; x <= _resolution; x++)
+            float half = _heRes * _heCell * .5f;
+            int t = 0;
+            for (int z = 0; z <= _heRes; z++)
+                for (int x = 0; x <= _heRes; x++)
                 {
-                    int i = z * (_resolution + 1) + x;
-                    verts[i] = new Vector3(x * cellSize - half, _heights[x, z], z * cellSize - half);
-                    uvs[i] = new Vector2((float)x / _resolution, (float)z / _resolution);
-                    if (x < _resolution && z < _resolution)
+                    int i = z * (_heRes + 1) + x;
+                    verts[i] = new Vector3(x * _heCell - half, _heights[x, z], z * _heCell - half);
+                    uvs[i] = new Vector2((float)x / _heRes, (float)z / _heRes);
+
+                    if (x < _heRes && z < _heRes)
                     {
-                        int a = i, b = i + 1, c = i + _resolution + 1, d = c + 1;
+                        int a = i, b = i + 1, c = i + _heRes + 1, d = c + 1;
                         tris[t++] = a; tris[t++] = c; tris[t++] = b;
                         tris[t++] = b; tris[t++] = c; tris[t++] = d;
                     }
@@ -145,48 +193,65 @@ namespace Assets.Scripts.MapEditor.Controllers
             _mesh.uv = uvs;
             _mesh.RecalculateNormals();
 
-            // prepare vertex-colors
             _vertColors = new Color[verts.Length];
             _mesh.colors = _vertColors;
 
-            var mf = GetComponent<MeshFilter>();
-            mf.mesh = _mesh;
+            GetComponent<MeshFilter>().mesh = _mesh;
             GetComponent<MeshCollider>().sharedMesh = _mesh;
         }
 
-        private void UpdateMesh()
+        void UpdateMesh()
         {
             var v = _mesh.vertices;
-            for (int z = 0; z <= _resolution; z++)
-                for (int x = 0; x <= _resolution; x++)
-                {
-                    int i = z * (_resolution + 1) + x;
-                    v[i].y = _heights[x, z];
-                }
+            for (int z = 0; z <= _heRes; z++)
+                for (int x = 0; x <= _heRes; x++)
+                    v[z * (_heRes + 1) + x].y = _heights[x, z];
+
             _mesh.vertices = v;
             _mesh.RecalculateNormals();
             _mesh.UploadMeshData(false);
             GetComponent<MeshCollider>().sharedMesh = _mesh;
             ApplyVertexColors();
         }
+        #endregion
 
-        public void SetSurface(SurfaceType[,] src)
+        #region ─── HEIGHT brush ──────────────────────────────────────────────
+        public void ModifyWorld(Vector3 wp, float delta, float radius)
         {
-            _surface = src;
-            ApplyVertexColors();
-        }
+            float half = _heRes * _heCell * .5f;
+            int cx = Mathf.RoundToInt((wp.x + half) / _heCell);
+            int cz = Mathf.RoundToInt((wp.z + half) / _heCell);
+            int rad = Mathf.CeilToInt(radius / _heCell);
 
-        public void ApplyVertexColors()
+            for (int ix = -rad; ix <= rad; ix++)
+                for (int iz = -rad; iz <= rad; iz++)
+                {
+                    int px = cx + ix, pz = cz + iz;
+                    if (px < 0 || pz < 0 || px > _heRes || pz > _heRes) continue;
+                    float fall = 1f - Mathf.Sqrt(ix * ix + iz * iz) / rad;
+                    if (fall < 0) continue;
+                    _heights[px, pz] += delta * fall;
+                }
+            UpdateMesh();
+        }
+        #endregion
+
+        #region ─── VERTEX colours ────────────────────────────────────────────
+        void ApplyVertexColors()
         {
             if (_vertColors == null || _vertColors.Length != _mesh.vertexCount)
                 _vertColors = new Color[_mesh.vertexCount];
 
-            var verts = _mesh.vertices;
+            Vector3[] verts = _mesh.vertices;
+            float half = _heRes * _heCell * .5f;
+
             for (int i = 0; i < verts.Length; i++)
             {
                 Vector3 wp = transform.TransformPoint(verts[i]);
-                SurfaceType st = SurfaceAt(wp);
-                _vertColors[i] = st switch
+                int sx = Mathf.Clamp(Mathf.FloorToInt((wp.x + half) / _suCell), 0, _suRes - 1);
+                int sz = Mathf.Clamp(Mathf.FloorToInt((wp.z + half) / _suCell), 0, _suRes - 1);
+
+                _vertColors[i] = _surface[sx, sz] switch
                 {
                     SurfaceType.Grass => grassColor,
                     SurfaceType.Mud => mudColor,
@@ -198,40 +263,6 @@ namespace Assets.Scripts.MapEditor.Controllers
             }
             _mesh.colors = _vertColors;
         }
-
-        #endregion
-
-        public SurfaceType GetSurfaceTypeAt(Vector3 worldPos)
-        {
-            float half = _resolution * cellSize * 0.5f;
-            int gx = Mathf.FloorToInt((worldPos.x + half) / cellSize);
-            int gz = Mathf.FloorToInt((worldPos.z + half) / cellSize);
-
-            gx = Mathf.Clamp(gx, 0, _resolution);
-            gz = Mathf.Clamp(gz, 0, _resolution);
-            return _surface[gx, gz];
-        }
-
-        #region Height Brush (он же ModifyWorld)
-
-        public void ModifyWorld(Vector3 worldPos, float delta, float radius)
-        {
-            float half = _resolution * cellSize * .5f;
-            int cx = Mathf.RoundToInt((worldPos.x + half) / cellSize);
-            int cz = Mathf.RoundToInt((worldPos.z + half) / cellSize);
-            int rad = Mathf.CeilToInt(radius / cellSize);
-            for (int ix = -rad; ix <= rad; ix++)
-                for (int iz = -rad; iz <= rad; iz++)
-                {
-                    int px = cx + ix, pz = cz + iz;
-                    if (px < 0 || pz < 0 || px > _resolution || pz > _resolution) continue;
-                    float fall = 1f - Mathf.Sqrt(ix * ix + iz * iz) / rad;
-                    if (fall < 0) continue;
-                    _heights[px, pz] += delta * fall;
-                }
-            UpdateMesh();
-        }
-
         #endregion
     }
 }

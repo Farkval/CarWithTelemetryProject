@@ -195,7 +195,7 @@ namespace Assets.Scripts.Robot
                                    WheelFrictionCurve baseFwd,
                                    WheelFrictionCurve baseSide)
         {
-            SurfaceType st = _terrain.GetSurfaceTypeAt(wc.transform.position);
+            SurfaceType st = _terrain.SurfaceAt(wc.transform.position);
             (float kFwd, float kSide) = SurfaceFrictionConst.SurfaceFriction.TryGetValue(st, out var k) ? k : (1, 1);
 
             // глобальные мультипликаторы пользователя

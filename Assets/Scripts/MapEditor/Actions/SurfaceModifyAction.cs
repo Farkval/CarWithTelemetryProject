@@ -18,13 +18,13 @@ namespace Assets.Scripts.MapEditor.Actions
 
         public object Undo()
         {
-            _terrain.SetSurface(_before);
+            _terrain.SetSurfaces(_before);
             return null;
         }
 
         public object Redo()
         {
-            _terrain.SetSurface(_after);
+            _terrain.SetSurfaces(_after);
             return null;
         }
     }

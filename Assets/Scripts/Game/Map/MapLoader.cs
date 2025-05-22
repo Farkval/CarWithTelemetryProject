@@ -29,17 +29,17 @@ namespace Assets.Scripts.Game.Map
             dayNightController.OnTimeChanged((int)data.timeOfDay);
 
             // размер и рельеф
-            terrain.Init((int)data.size);
+            terrain.Init((int)data.mapSize);
             if (data.heights != null && data.heights.Length > 0)
             {
                 int n = (int)Mathf.Sqrt(data.heights.Length) - 1;
                 float[,] h = new float[n + 1, n + 1];
                 System.Buffer.BlockCopy(data.heights, 0, h, 0, sizeof(float) * data.heights.Length);
-                terrain.ImportHeights(h);
+                //terrain.ImportHeights(h);
             }
-            if (data.surfaces != null && data.surfaces.Length == (int)data.size * (int)data.size)
+            if (data.surfaces != null && data.surfaces.Length == (int)data.mapSize * (int)data.mapSize)
             {
-                terrain.ImportSurfaces((int)data.size, data.surfaces);
+                terrain.ImportSurfaces((int)data.mapSize, data.surfaces);
             }
 
             // объекты

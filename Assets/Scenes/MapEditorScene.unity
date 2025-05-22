@@ -1956,7 +1956,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   surfaceType: 3
-  radius: 0.1
+  radius: 0.25
 --- !u!114 &377244325
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2502,6 +2502,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 148764b354ca0834b99964064d3b9b5e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  heightSubDiv: 1
+  surfaceSubDiv: 1
   cellSize: 1
   grassColor: {r: 0, g: 1, b: 0, a: 1}
   mudColor: {r: 0.45, g: 0.25, b: 0.1, a: 1}
@@ -2635,7 +2637,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   surfaceType: 2
-  radius: 0.1
+  radius: 0.25
 --- !u!114 &608248382
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3627,7 +3629,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   surfaceType: 0
-  radius: 0.1
+  radius: 0.25
 --- !u!114 &934971918
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5006,7 +5008,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   surfaceType: 1
-  radius: 0.1
+  radius: 0.25
 --- !u!114 &1338869968
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8212,7 +8214,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   surfaceType: 4
-  radius: 0.1
+  radius: 0.25
 --- !u!114 &2094538843
 MonoBehaviour:
   m_ObjectHideFlags: 0

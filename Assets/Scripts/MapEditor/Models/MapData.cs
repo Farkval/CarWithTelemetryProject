@@ -8,14 +8,17 @@ namespace Assets.Scripts.MapEditor.Models
     public class MapData
     {
         public TimeOfDay timeOfDay;
-        public MapSize size;
-        public float[] heights;
-        public byte[] surfaces;
+        public MapSize mapSize;
+        public int heightRes;                  // реальное (_heRes) = size * heightSubDiv
+        public int surfaceRes;                 // реальное (_suRes) = size * surfaceSubDiv
+        public float[] heights;                // длина = (heightRes+1)^2
+        public byte[] surfaces;               // длина =  surfaceRes  * surfaceRes
         public List<ElementInstanceData> instances = new();
 
-        public MapData(List<PlacedObject> objects, MapSize mapSize, TimeOfDay timeOfDay)
+        public MapData(List<PlacedObject> objects, MapSize ms, TimeOfDay tod)
         {
-            size = mapSize;
+            mapSize = ms;
+            timeOfDay = tod;
             foreach (var po in objects) 
                 instances.Add(new ElementInstanceData(po));
         }
