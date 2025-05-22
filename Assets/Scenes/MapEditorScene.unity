@@ -2502,8 +2502,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 148764b354ca0834b99964064d3b9b5e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  heightSubDiv: 1
-  surfaceSubDiv: 1
+  heightSubDiv: 2
+  surfaceSubDiv: 4
   cellSize: 1
   grassColor: {r: 0, g: 1, b: 0, a: 1}
   mudColor: {r: 0.45, g: 0.25, b: 0.1, a: 1}
@@ -7294,7 +7294,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sceneCamera: {fileID: 213430691}
   previewParent: {fileID: 566803138}
-  serializer: {fileID: 1168501656}
+  mapSerializer: {fileID: 1168501656}
 --- !u!1 &1853268245
 GameObject:
   m_ObjectHideFlags: 0
@@ -7718,7 +7718,7 @@ GameObject:
   - component: {fileID: 1988610631}
   - component: {fileID: 1988610632}
   m_Layer: 0
-  m_Name: MapManager
+  m_Name: MapController
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
