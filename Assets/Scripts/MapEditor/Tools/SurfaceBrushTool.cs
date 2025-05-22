@@ -27,7 +27,16 @@ namespace Assets.Scripts.MapEditor.Tools
             _toggle = GetComponent<Toggle>();
             _undo = FindFirstObjectByType<MapEditorController>().UndoRedoManager;
 
-            _toggle.onValueChanged.AddListener(isOn => enabled = isOn);
+            var elementPaletteUIController = FindFirstObjectByType<ElementPaletteUIController>();
+            _toggle.onValueChanged.AddListener(isOn =>
+            {
+                enabled = isOn;
+                if (isOn)
+                {
+                    elementPaletteUIController.ClearSelection();
+                }
+            });
+
             enabled = _toggle.isOn;
         }
 

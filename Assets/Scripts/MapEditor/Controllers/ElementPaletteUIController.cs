@@ -1,132 +1,175 @@
-﻿using Assets.Scripts.MapEditor.Models;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using Assets.Scripts.MapEditor.Models;
+using Assets.Scripts.MapEditor.Controllers;
+using Assets.Scripts.Consts;
 
-namespace Assets.Scripts.MapEditor.Controllers
+public class ElementPaletteUIController : MonoBehaviour
 {
-    /// <summary>
-    /// Отвечает за нижнюю панель выбора элементов.
-    /// </summary>
-    public class ElementPaletteUIController : MonoBehaviour
+    [Header("Prefabs")]
+    [SerializeField] private Toggle categoryTogglePrefab;
+    [SerializeField] private Button elementButtonPrefab;
+
+    [Header("Scroll Views Content")]
+    [SerializeField] private RectTransform categoriesContent;  // Content из CategoriesScroll
+    [SerializeField] private RectTransform elementsContent;    // Content из ElementsScroll
+
+    [Header("Toggle Group")]
+    [SerializeField] private ToggleGroup categoriesToggleGroup;
+
+    [Header("Data")]
+    [Tooltip("Список категорий и их элементов")]
+    public List<ElementCategory> categories;
+
+    // Внутренние поля для хранения текущего выделения
+    private Button _selectedElementBtn;
+    private ElementData _selectedElementData;
+    private MapEditorController _mapEditor;
+    private List<Toggle> _toolsToggles;
+
+    private void Awake()
     {
-        [SerializeField] private RectTransform categoryButtonPrefab;
-        [SerializeField] private RectTransform elementButtonPrefab;
-        [SerializeField] private Transform categoriesRoot;
-        [SerializeField] private ToggleGroup categoriesToggleGroup;
+        // Находим контроллер редактора на сцене
+        _mapEditor = FindFirstObjectByType<MapEditorController>();
 
-        [Tooltip("Категории и их элементы (заполняется в инспекторе)")]
-        public List<ElementCategory> categories;
+        // Собираем ваши тул-тогглы, чтобы сбрасывать их при выборе элемента
+        _toolsToggles = FindObjectsByType<Toggle>(FindObjectsSortMode.None)
+            .Where(t => GameObjectNameConst.ToolsToggles.Contains(t.name))
+            .ToList();
+    }
 
-        private readonly Dictionary<ElementData, Button> _elementButtons = new();
-        private MapEditorController _controller;
-        // Доработать, нужна для выделения явного
-        private Button _currentButton;
-        private ElementData _activeElement;
-        private readonly List<GameObject> _allGrids = new();
+    private void Start()
+    {
+        BuildCategoryToggles();
 
-        public void DeselectElement()
+        // Автовыбор первой категории (чтобы сразу показать её элементы)
+        if (categoriesContent.childCount > 0)
         {
-            _controller.SetActiveElement(null);
-            _activeElement = null;
-            _currentButton = null;
+            var first = categoriesContent.GetChild(0).GetComponent<Toggle>();
+            if (first != null) first.isOn = true;
         }
+    }
 
-        private void Awake()
+    private void BuildCategoryToggles()
+    {
+        foreach (var cat in categories)
         {
-            _controller = FindFirstObjectByType<MapEditorController>();
-        }
+            // 1) Создаём Toggle-категорию
+            var tog = Instantiate(categoryTogglePrefab, categoriesContent);
+            tog.group = categoriesToggleGroup;
+            tog.GetComponentInChildren<Text>().text = cat.name;
 
-        private void Start()
-        {
-            BuildUI();
-        }
-
-        private void BuildUI()
-        {
-            foreach (var category in categories)
+            // 2) Подписываемся на onValueChanged
+            tog.onValueChanged.AddListener(isOn =>
             {
-                // Создаём кнопку категории
-                var catBtn = Instantiate(categoryButtonPrefab, categoriesRoot);
-                catBtn.GetComponentInChildren<Text>().text = category.name;
-                var catToggle = catBtn.GetComponent<Toggle>();
-                catToggle.group = categoriesToggleGroup;
-
-                // Контейнер сетки элементов внутри категории
-                var gridRootGO = new GameObject("Grid", typeof(RectTransform), typeof(GridLayoutGroup), typeof(ContentSizeFitter));
-                var gridRoot = gridRootGO.GetComponent<RectTransform>();
-
-                // настройки сетки
-                var grid = gridRootGO.GetComponent<GridLayoutGroup>();
-                grid.cellSize = new Vector2(80, 80);     // под ваши кнопки 80×80
-                grid.spacing = new Vector2(20, 20);
-                grid.childAlignment = TextAnchor.UpperCenter;  // ← иконки по центру
-                grid.constraint = GridLayoutGroup.Constraint.FixedRowCount;
-                grid.constraintCount = 1; // одна строка
-
-                var fitter = gridRootGO.GetComponent<ContentSizeFitter>();
-                fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-                fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
-                gridRoot.SetParent(catBtn, false);
-                gridRoot.anchorMin = new Vector2(0, 0);
-                gridRoot.anchorMax = new Vector2(1, 0);
-                gridRoot.pivot = new Vector2(0.5f, 1);
-                gridRoot.anchoredPosition = new Vector2(0, -40);
-                gridRoot.gameObject.SetActive(false);
-
-                _allGrids.Add(gridRootGO);
-
-                // раскрытие ─ одновременно только одна
-                catToggle.onValueChanged.AddListener(isOn =>
-                {
-                    foreach (var g in _allGrids) 
-                        g.SetActive(false);
-                    if (isOn) 
-                        gridRootGO.SetActive(true);
-                });
-
-                gridRootGO.SetActive(false);
-
-                // Создаём кнопки элементов
-                foreach (var element in category.elements)
-                {
-                    var elemBtn = Instantiate(elementButtonPrefab, gridRoot);
-                    elemBtn.GetComponentInChildren<Image>().sprite = element.icon;
-                    var btn = elemBtn.GetComponent<Button>();
-                    btn.onClick.AddListener(() => OnElementSelected(element, btn));
-                    _elementButtons[element] = btn;
-
-                    // Hover‑эффект через EventTrigger
-                    var trigger = elemBtn.gameObject.AddComponent<EventTrigger>();
-                    var entryEnter = new EventTrigger.Entry { eventID = EventTriggerType.PointerEnter };
-                    entryEnter.callback.AddListener(_ => elemBtn.localScale = Vector3.one * 1.1f);
-                    var entryExit = new EventTrigger.Entry { eventID = EventTriggerType.PointerExit };
-                    entryExit.callback.AddListener(_ => elemBtn.localScale = Vector3.one);
-                    trigger.triggers.Add(entryEnter);
-                    trigger.triggers.Add(entryExit);
-                }
-            }
+                if (isOn) ShowElementsOfCategory(cat);
+                else ClearElements();
+            });
         }
+    }
 
-        private void OnElementSelected(ElementData data, Button btn)
+    private void ShowElementsOfCategory(ElementCategory cat)
+    {
+        // Сначала очищаем старые кнопки
+        ClearElements();
+
+        // Для каждой модели элемента создаём кнопку
+        foreach (var el in cat.elements)
         {
-            // 2) Если кликнули по уже выбранной – снимаем выбор
-            if (_activeElement == data)
+            var btn = Instantiate(elementButtonPrefab, elementsContent);
+
+            // Сразу установим иконку (допустим, у кнопки есть дочерний Image)
+            var img = btn.GetComponentInChildren<Image>();
+            if (img != null)
             {
-                _controller.SetActiveElement(null);
-                _activeElement = null;
-                _currentButton = null;
-                return;
+                img.sprite = el.icon;
+                var arFitter = img.GetComponent<AspectRatioFitter>();
+                if (arFitter != null && img.sprite != null)
+                    arFitter.aspectRatio =
+                        (float)img.sprite.rect.width / img.sprite.rect.height;
             }
 
-            // 3) Новый выбор
-            _currentButton = btn;
-            _activeElement = data;
-            _controller.SetActiveElement(data);
+            // Сбросим масштаб на стандартный
+            btn.transform.localScale = Vector3.one;
 
-            GameObject.Find("RaiseToggle").GetComponent<Toggle>().isOn = false;
-            GameObject.Find("PitToggle").GetComponent<Toggle>().isOn = false;
+            // Подписка на клик
+            btn.onClick.AddListener(() => OnElementClicked(btn, el));
+
+            // Hover-эффект: увеличиваем, если не выбран
+            var trigger = btn.gameObject.AddComponent<EventTrigger>();
+            var entryEnter = new EventTrigger.Entry { eventID = EventTriggerType.PointerEnter };
+            entryEnter.callback.AddListener(_ =>
+            {
+                if (btn != _selectedElementBtn)
+                    btn.transform.localScale = Vector3.one * 1.1f;
+            });
+            var entryExit = new EventTrigger.Entry { eventID = EventTriggerType.PointerExit };
+            entryExit.callback.AddListener(_ =>
+            {
+                if (btn != _selectedElementBtn)
+                    btn.transform.localScale = Vector3.one;
+            });
+            trigger.triggers.Add(entryEnter);
+            trigger.triggers.Add(entryExit);
         }
+    }
+
+    private void OnElementClicked(Button btn, ElementData data)
+    {
+        // Если клик по уже выделенному — сбросим
+        if (_selectedElementBtn == btn && _selectedElementData == data)
+        {
+            ClearSelection();
+            return;
+        }
+
+        // Снимаем масштаб со старого выделения
+        if (_selectedElementBtn != null)
+        {
+            _selectedElementBtn.transform.localScale = Vector3.one;
+        }
+
+        // Устанавливаем новое выделение
+        _selectedElementBtn = btn;
+        _selectedElementData = data;
+        btn.transform.localScale = Vector3.one * 1.1f;
+
+        // Передаём выбор в MapEditorController
+        _mapEditor.SetActiveElement(data);
+
+        // Сбрасываем все тул-тогглы
+        foreach (var t in _toolsToggles)
+            t.isOn = false;
+    }
+
+    /// <summary>
+    /// Полностью очищает список кнопок элементов и сбрасывает выделение.
+    /// </summary>
+    private void ClearElements()
+    {
+        // Удаляем все кнопки
+        foreach (Transform c in elementsContent)
+            Destroy(c.gameObject);
+
+        // Сбрасываем текущее выделение
+        ClearSelection();
+    }
+
+    /// <summary>
+    /// Снимает выделение с последнего активного элемента.
+    /// </summary>
+    public void ClearSelection()
+    {
+        if (_selectedElementBtn != null)
+        {
+            _selectedElementBtn.transform.localScale = Vector3.one;
+            _selectedElementBtn = null;
+        }
+
+        _selectedElementData = null;
+        _mapEditor.SetActiveElement(null);
     }
 }

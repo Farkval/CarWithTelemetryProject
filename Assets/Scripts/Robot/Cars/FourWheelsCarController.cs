@@ -1,5 +1,4 @@
 ﻿using Assets.Scripts.Consts;
-using Assets.Scripts.MapEditor;
 using Assets.Scripts.MapEditor.Controllers;
 using Assets.Scripts.MapEditor.Models.Enums;
 using Assets.Scripts.Robot.Api.Interfaces;
