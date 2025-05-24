@@ -1904,6 +1904,9 @@ MonoBehaviour:
   - name: "\u0421\u0442\u0435\u043D\u044B"
     elements:
     - {fileID: 11400000, guid: 3f67b775b9414e14bbdb55cebf3b355d, type: 2}
+  - name: "\u041A\u0430\u043C\u043D\u0438"
+    elements:
+    - {fileID: 11400000, guid: cefc51e20b774e348adc41c31ca3f766, type: 2}
 --- !u!1 &377244322
 GameObject:
   m_ObjectHideFlags: 0

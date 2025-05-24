@@ -1,11 +1,10 @@
-﻿using Assets.Scripts.MapEditor;
+﻿using Assets.Scripts.MapEditor.Controllers;
 using Assets.Scripts.Robot.Api.Interfaces;
+using Assets.Scripts.Robot.Api.Python;
+using IronPython.Hosting;
 using Microsoft.Scripting.Hosting;
 using System.IO;
 using UnityEngine;
-using IronPython.Hosting;
-using Assets.Scripts.Robot.Api.Python;
-using Assets.Scripts.MapEditor.Controllers;
 
 [RequireComponent(typeof(MonoBehaviour))]
 public class PythonScriptRunner : MonoBehaviour

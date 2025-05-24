@@ -9,7 +9,7 @@ namespace Assets.Scripts.MainMenu
     /// </summary>
     public class MainMenuController : MonoBehaviour
     {
-        public void OnStartButtonPressed()
+        public void OnPlayButtonPressed()
         {
             SceneManager.LoadScene(SceneNameConst.GAME_SCENE);
         }
@@ -19,9 +19,9 @@ namespace Assets.Scripts.MainMenu
             SceneManager.LoadScene(SceneNameConst.MAP_EDITOR_SCENE);
         }
 
-        public void OnSettingsButtonPressed()
+        public void OnCarSettingsButtonPressed()
         {
-            Debug.Log("Найстроки");
+            SceneManager.LoadScene(SceneNameConst.GARAGE_SCENE);
         }
 
         public void OnExitButtonPressed()

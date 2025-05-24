@@ -1,5 +1,6 @@
+using Assets.Scripts.Game.Map;
 using Assets.Scripts.MapEditor.Consts;
-using Assets.Scripts.Robot;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -10,7 +11,21 @@ namespace Assets.Scripts.Game.Controllers
     /// </summary>
     public class GameKeyboardHandler : MonoBehaviour
     {
-        public FourWheelsCarController carController;
+        [SerializeField] MapLoader mapLoader;
+        
+        private List<Camera> cameras = new();
+        private int _currentCameraIndex = -1;
+
+        private void Start()
+        {
+            mapLoader = FindFirstObjectByType<MapLoader>();
+            mapLoader.Load();
+
+            cameras.AddRange(FindObjectsByType<Camera>(FindObjectsSortMode.None));
+            Debug.Log($"Камер найдено: {cameras.Count}");
+
+            ActivateNextCamera();
+        }
 
         private void Update()
         {
@@ -20,10 +35,31 @@ namespace Assets.Scripts.Game.Controllers
             }
             if (Input.GetKeyDown(KeyCode.R))
             {
-                if (carController == null)
-                    return;
+                var rb = mapLoader.carPrefab.GetComponent<Rigidbody>();
+                rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
 
-                carController.ResetCar();
+                var spawnPos = mapLoader.spawnPos;
+                var spawnRot = mapLoader.spawnRot;
+
+                mapLoader.carPrefab.transform.SetPositionAndRotation(new Vector3(spawnPos.x, spawnPos.y + 1, spawnPos.z), spawnRot);
+            }
+            if (Input.GetKeyDown(KeyCode.N))
+            {
+                ActivateNextCamera();
+            }
+        }
+
+        private void ActivateNextCamera()
+        {
+            _currentCameraIndex++;
+
+            if (_currentCameraIndex >= cameras.Count)
+                _currentCameraIndex = 0;
+
+            for (int i = 0; i < cameras.Count; i++)
+            {
+                cameras[i].enabled = i == _currentCameraIndex;
             }
         }
     }

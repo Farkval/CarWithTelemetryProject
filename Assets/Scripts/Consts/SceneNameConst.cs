@@ -5,6 +5,7 @@ namespace Assets.Scripts.MapEditor.Consts
         public const string MAIN_MENU_SCENE = "MainMenuScene";
         public const string GAME_SCENE = "GameScene";
         public const string MAP_EDITOR_SCENE = "MapEditorScene";
+        public const string GARAGE_SCENE = "GarageScene";
         public const string TEST_SCENE = "TestScene";
     }
 }

@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.MapEditor.Consts;
+﻿using Assets.Scripts.Garage;
+using Assets.Scripts.MapEditor.Consts;
 using Assets.Scripts.MapEditor.Controllers;
 using Assets.Scripts.MapEditor.Models;
 using Assets.Scripts.MapEditor.Triggers;
@@ -9,11 +10,14 @@ namespace Assets.Scripts.Game.Map
 {
     public class MapLoader : MonoBehaviour
     {
-        [SerializeField] GameObject carPrefab;
+        [SerializeField] public GameObject carPrefab;
         [SerializeField] MapTerrain terrain;
         [SerializeField] DayNightController dayNightController;
 
-        void Start()
+        public Vector3 spawnPos;
+        public Quaternion spawnRot;
+
+        public void Load()
         {
             //string path = Path.Combine(Application.persistentDataPath, "lastMap.json");
             string path = UnityEditor.EditorUtility.OpenFilePanel("Выбрать карту", "", "json");
@@ -28,34 +32,29 @@ namespace Assets.Scripts.Game.Map
 
             dayNightController.OnTimeChanged((int)data.timeOfDay);
 
-            // размер и рельеф
             terrain.Init((int)data.mapSize);
-            if (data.heights != null && data.heights.Length > 0)
-            {
-                int n = (int)Mathf.Sqrt(data.heights.Length) - 1;
-                float[,] h = new float[n + 1, n + 1];
-                System.Buffer.BlockCopy(data.heights, 0, h, 0, sizeof(float) * data.heights.Length);
-                //terrain.ImportHeights(h);
-            }
-            if (data.surfaces != null && data.surfaces.Length == (int)data.mapSize * (int)data.mapSize)
-            {
-                terrain.ImportSurfaces((int)data.mapSize, data.surfaces);
-            }
+            if (data.heights != null && data.heightRes > 0)
+                terrain.ImportHeights(data.heightRes, data.heights);
+            else terrain.Init((int)data.mapSize);
+
+            // покрытие
+            if (data.surfaces != null && data.surfaceRes > 0)
+                terrain.ImportSurfaces(data.surfaceRes, data.surfaces);
 
             // объекты
-            Vector3 spawnPos = Vector3.zero;
-            Quaternion spawnRot = Quaternion.identity;
+            spawnPos = Vector3.zero;
+            spawnRot = Quaternion.identity;
             foreach (var inst in data.instances)
             {
                 var ed = Resources.Load<ElementData>(inst.elementPath);
                 if (!ed) continue;
 
                 // Spawn / Finish — специальная логика
-                if (ed.name == ElementNameConst.START_INSTANCE_NAME) 
+                if (ed.name == ElementNameConst.START_INSTANCE_NAME)
                 {
                     spawnPos = inst.position;
                     spawnRot = Quaternion.Euler(inst.rotation + new Vector3(0, 90, 0));
-                    continue; 
+                    continue;
                 }
 
                 if (ed.name == ElementNameConst.FINISH_INSTANCE_NAME)
@@ -69,6 +68,7 @@ namespace Assets.Scripts.Game.Map
                           .transform.localScale = inst.localScale;
             }
 
+            VehicleLoader.LoadSettings(carPrefab.name, GarageController.GatherComponents(carPrefab));
             Instantiate(carPrefab, spawnPos + Vector3.up * 0.5f, spawnRot);
         }
     }

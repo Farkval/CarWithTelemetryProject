@@ -6,12 +6,12 @@ using Assets.Scripts.Robot.Models.Enums;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Assets.Scripts.Robot
+namespace Assets.Scripts.Robot.Cars
 {
     [RequireComponent(typeof(Rigidbody))]
     public class FourWheelsCarController : MonoBehaviour, IRobotAPI
     {
-        #region ⭑ Public fields (как было)
+        #region ⭑ Public fields
         [Header("Wheel Colliders")]
         public WheelCollider frontLeftWheel, frontRightWheel, rearLeftWheel, rearRightWheel;
 
@@ -26,7 +26,12 @@ namespace Assets.Scripts.Robot
         public float forwardSpeedLimit = 120f;
         public float reverseSpeedLimit = 60f;
         public float brakeTorque = 2000f;
-        public float resetHeight = 1f;
+
+        [Header("Suspension")]
+        public float suspensionDistance = 0.15f;
+        public float springStrength = 35000f;
+        public float springDamper = 4500f;
+        public float antiRollStrength = 5000f;     // стабилизатор
 
         [Header("Friction Settings")]
         [Range(0, 2)] public float globalFrictionMultiplier = 1f;
@@ -34,25 +39,29 @@ namespace Assets.Scripts.Robot
         [Range(0, 2)] public float sidewaysFrictionMultiplier = 1f;
         #endregion
 
-        #region ⭑ IRobotAPI implementation (новое)
-        public bool ManualControl { get; set; } = true;         // TRUE – WASD, FALSE – script
+        #region ⭑ IRobotAPI implementation
+
         public void SetMotorPower(float left, float right)
         {
             _cmdLeft = Mathf.Clamp(left, -1, 1);
             _cmdRight = Mathf.Clamp(right, -1, 1);
             ManualControl = false;
         }
+
         public void Brake(float power = 1)
-        { _brakeCmd = Mathf.Clamp01(power); ManualControl = false; }
+        { 
+            _brakeCmd = Mathf.Clamp01(power); 
+            ManualControl = false; 
+        }
 
         public float[] WheelRPM => _rpm;
         public Vector3 Position => transform.position;
         public float YawDeg => transform.eulerAngles.y;
         public List<ILidar> Lidars { get; } = new();
+        public bool ManualControl { get; set; } = true;         // TRUE – WASD, FALSE – script
         #endregion
 
         #region ⭑ private state
-        Vector3 _spawnPos; Quaternion _spawnRot;
         Rigidbody _rb;
         float _currentSpeed;
         readonly float[] _rpm = new float[4];
@@ -69,7 +78,12 @@ namespace Assets.Scripts.Robot
         void Awake()
         {
             _rb = GetComponent<Rigidbody>();
-            _spawnPos = transform.position; _spawnRot = transform.rotation;
+            _rb.centerOfMass = new Vector3(0, -0.35f, 0);
+
+            SetSuspension(frontLeftWheel);
+            SetSuspension(frontRightWheel);
+            SetSuspension(rearLeftWheel);
+            SetSuspension(rearRightWheel);
 
             // сохранить базовые кривые трения
             _flFwd0 = frontLeftWheel.forwardFriction; _flSide0 = frontLeftWheel.sidewaysFriction;
@@ -92,7 +106,8 @@ namespace Assets.Scripts.Robot
                 float h = Input.GetAxis("Horizontal");           // A/D
                 throttleL = throttleR = v;
                 steerInput = h;
-                if (Input.GetKey(KeyCode.Space)) _brakeCmd = 1;
+                if (Input.GetKey(KeyCode.Space)) 
+                    _brakeCmd = 1;
             }
             else
             {
@@ -108,7 +123,40 @@ namespace Assets.Scripts.Robot
             UpdateWheelFriction();
             UpdateWheelMeshes();
             CaptureRPM();
+
+            ApplyAntiRoll(frontLeftWheel, frontRightWheel);    // NEW
+            ApplyAntiRoll(rearLeftWheel, rearRightWheel);
+
             _brakeCmd = 0;                                // сбросить до следующего кадра
+        }
+
+        void SetSuspension(WheelCollider wc)           // NEW
+        {
+            wc.suspensionDistance = suspensionDistance;
+
+            JointSpring js = wc.suspensionSpring;
+            js.spring = springStrength;
+            js.damper = springDamper;
+            js.targetPosition = .5f;                   // 50 % хода
+            wc.suspensionSpring = js;
+        }
+
+        void ApplyAntiRoll(WheelCollider left, WheelCollider right)   // NEW
+        {
+            bool lGround = left.GetGroundHit(out WheelHit hitL);
+            bool rGround = right.GetGroundHit(out WheelHit hitR);
+
+            if (!lGround && !rGround) return;
+
+            float travelL = lGround ? (-left.transform.InverseTransformPoint(hitL.point).y - left.radius) / left.suspensionDistance : 1;
+            float travelR = rGround ? (-right.transform.InverseTransformPoint(hitR.point).y - right.radius) / right.suspensionDistance : 1;
+
+            float force = (travelL - travelR) * antiRollStrength;
+
+            if (lGround)
+                _rb.AddForceAtPosition(left.transform.up * -force, left.transform.position);
+            if (rGround)
+                _rb.AddForceAtPosition(right.transform.up * force, right.transform.position);
         }
 
         #region ► low-level actions
@@ -229,14 +277,5 @@ namespace Assets.Scripts.Robot
                 frontRightMesh.localEulerAngles = euler;
             }
         }
-
-        #region ► helpers
-        public void ResetCar()
-        {
-            _rb.linearVelocity = Vector3.zero;
-            _rb.angularVelocity = Vector3.zero;
-            transform.SetPositionAndRotation(new Vector3(_spawnPos.x, resetHeight, _spawnPos.z), _spawnRot);
-        }
-        #endregion
     }
 }
