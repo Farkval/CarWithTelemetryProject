@@ -1,8 +1,11 @@
 ﻿using Assets.Scripts.Garage.Attributes;
+using Assets.Scripts.Robot.Api.Interfaces;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 namespace Assets.Scripts.Robot.Sensors.Cameras
 {
+    [SectionName("Камера")]
     public class CameraSettings : MonoBehaviour
     {
         [Header("Поля камеры")]
@@ -17,6 +20,9 @@ namespace Assets.Scripts.Robot.Sensors.Cameras
 
         [DisplayName("HDR рендер")]
         public bool enableHDR = false;
+
+        public int Width => renderWidth;
+        public int Height => renderHeight;
 
         // Внутренние ссылки
         Camera _cam;
@@ -69,6 +75,26 @@ namespace Assets.Scripts.Robot.Sensors.Cameras
                 _cam.targetTexture = _rt;
             }
         }
-    }
 
+        public Texture2D CaptureTexture()
+        {
+            var rt = _rt; // ваш RenderTexture
+            var tex = new Texture2D(Width, Height, rt.graphicsFormat, TextureCreationFlags.None);
+            var prev = RenderTexture.active;
+            RenderTexture.active = rt;
+            tex.ReadPixels(new Rect(0, 0, Width, Height), 0, 0);
+            tex.Apply();
+            RenderTexture.active = prev;
+            return tex;
+        }
+
+        public byte[] CaptureImageBytes(ImageFormat format = ImageFormat.PNG)
+        {
+            var tex = CaptureTexture();
+            if (format == ImageFormat.PNG)
+                return tex.EncodeToPNG();
+            else
+                return tex.EncodeToJPG();
+        }
+    }
 }
