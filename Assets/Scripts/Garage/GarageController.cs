@@ -16,6 +16,7 @@ namespace Assets.Scripts.Garage
         [SerializeField] VehicleListUI listUI;
         [SerializeField] InspectorPanelUI inspectorUI;
         [SerializeField] Toggle lidarVizalizerToggle;
+        [SerializeField] Toggle cameraVizalizerToggle;
 
         [Header("Spawn")]
         [SerializeField] Transform spawnPoint;
@@ -24,12 +25,14 @@ namespace Assets.Scripts.Garage
         private GameObject _currentInstance;
         private List<Component> _currentComponents;
         private List<LidarVisualizer> _currentLidarVisualizers;
+        private List<CameraVisualizer> _currentCameraVisualizers;
 
         void Start()
         {
             // Строим список кнопок. При клике вызывается OnVehicleSelected(prefab).
             listUI.Build(OnVehicleSelected);
             lidarVizalizerToggle.onValueChanged.AddListener(UpdateLidarVisualizersEnabled);
+            cameraVizalizerToggle.onValueChanged.AddListener(UpdateCameraVisualizersEnabled);
         }
 
         void OnVehicleSelected(GameObject prefab)
@@ -40,6 +43,7 @@ namespace Assets.Scripts.Garage
                 Destroy(_currentInstance);
                 _currentInstance = null;
                 _currentLidarVisualizers = null;
+                _currentCameraVisualizers = null;
             }
 
             _currentPrefab = prefab;
@@ -49,8 +53,11 @@ namespace Assets.Scripts.Garage
 
             _currentLidarVisualizers = new List<LidarVisualizer>(
                 _currentInstance.GetComponentsInChildren<LidarVisualizer>());
+            _currentCameraVisualizers = new List<CameraVisualizer>(
+                _currentInstance.GetComponentsInChildren<CameraVisualizer>());
 
             UpdateLidarVisualizersEnabled(lidarVizalizerToggle.isOn);
+            UpdateCameraVisualizersEnabled(cameraVizalizerToggle.isOn);
 
             // Отключаем её встроенный контроллер и камеры, чтобы не мешали UI-редактированию
             var carCtrl = _currentInstance.GetComponent<FourWheelsCarController>();
@@ -99,12 +106,23 @@ namespace Assets.Scripts.Garage
 
         void UpdateLidarVisualizersEnabled(bool enabled)
         {
-            Debug.Log($"UpdateLidarVisualizersEnabled with {enabled}");
             if (_currentLidarVisualizers == null) 
                 return;
 
-            Debug.Log($"Vizualizers count: {_currentLidarVisualizers.Count}");
             foreach (var vis in _currentLidarVisualizers)
+            {
+                if (vis == null) 
+                    continue;
+                vis.enabled = enabled;
+            }
+        }
+
+        void UpdateCameraVisualizersEnabled(bool enabled)
+        {
+            if (_currentCameraVisualizers == null) 
+                return;
+
+            foreach (var vis in _currentCameraVisualizers)
             {
                 if (vis == null) 
                     continue;

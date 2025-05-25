@@ -51,6 +51,9 @@ namespace Assets.Scripts.Robot.Vizualizers
 
         void DrawFrustumRays()
         {
+            if (!enabled)
+                return;
+
             // вычисляем 4 угла фрустума на дальней плоскости
             Vector3[] farCorners = new Vector3[4];
             _cam.CalculateFrustumCorners(
