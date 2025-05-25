@@ -42,10 +42,6 @@ namespace Assets.Scripts.Garage
                 {
                     btn.GetComponentInChildren<Image>().sprite = icon;
                 }
-                else
-                {
-                    Debug.LogWarning($"[VehicleListUI] Icon not found: Vehicles/Icons/{go.name}");
-                }
 
                 // Навешиваем обработчик
                 btn.onClick.AddListener(() => onClick(go));

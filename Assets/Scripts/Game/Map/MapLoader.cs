@@ -24,7 +24,6 @@ namespace Assets.Scripts.Game.Map
 
             if (!File.Exists(path)) 
             {
-                Debug.LogError("Map file not found"); 
                 return; 
             }
 

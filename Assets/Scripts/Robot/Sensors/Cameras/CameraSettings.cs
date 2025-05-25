@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts.Garage.Attributes;
+using Assets.Scripts.Garage.Interfaces;
 using Assets.Scripts.Robot.Api.Interfaces;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -6,7 +7,7 @@ using UnityEngine.Experimental.Rendering;
 namespace Assets.Scripts.Robot.Sensors.Cameras
 {
     [SectionName("Камера")]
-    public class CameraSettings : MonoBehaviour
+    public class CameraSettings : MonoBehaviour, IApplySettings
     {
         [Header("Поля камеры")]
         [DisplayName("Угол обзора (FOV)")]
@@ -44,7 +45,8 @@ namespace Assets.Scripts.Robot.Sensors.Cameras
 
         public void ApplySettings()
         {
-            if (_cam == null) return;
+            if (_cam == null) 
+                return;
 
             // 1) Меняем field of view
             _cam.fieldOfView = fieldOfView;
@@ -59,7 +61,8 @@ namespace Assets.Scripts.Robot.Sensors.Cameras
                     _rt.format != (_cam.allowHDR ? RenderTextureFormat.DefaultHDR
                                                 : RenderTextureFormat.Default))
                 {
-                    _cam.targetTexture = null;
+                    if (_cam.targetTexture == _rt)
+                        _cam.targetTexture = null;
                     _rt.Release();
                     DestroyImmediate(_rt);
                     _rt = null;

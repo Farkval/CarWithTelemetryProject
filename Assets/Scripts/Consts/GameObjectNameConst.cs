@@ -14,5 +14,7 @@ namespace Assets.Scripts.Consts
             "WaterToggle",
             "GravelToggle"
         };
+
+        public const string BASE_CAR_CAMERA = "BaseCamera";
     }
 }

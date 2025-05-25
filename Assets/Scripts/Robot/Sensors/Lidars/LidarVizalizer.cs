@@ -26,6 +26,11 @@ namespace Assets.Scripts.Robot.Sensors.Lidars
             _sensor.OnScanComplete -= OnScan;
         }
 
+        private void OnDisable()
+        {
+            ClearRays();
+        }
+
         void Start()
         {
             // Определяем максимальное кол-во лучей в одном скане
@@ -44,6 +49,9 @@ namespace Assets.Scripts.Robot.Sensors.Lidars
 
         private void OnScan(List<LidarPoint> cloud)
         {
+            if (!enabled)
+                return;
+
             var origin = transform.position;
             float maxDist = _sensor.maxDistance;
             int useCount = Mathf.Min(cloud.Count, _poolSize);
@@ -75,7 +83,7 @@ namespace Assets.Scripts.Robot.Sensors.Lidars
             Invoke(nameof(ClearRays), rayDuration);
         }
 
-        public void ClearRays()
+        private void ClearRays()
         {
             // Скрываем сразу все, чтобы старые не висели
             for (int i = 0; i < _poolSize; i++)

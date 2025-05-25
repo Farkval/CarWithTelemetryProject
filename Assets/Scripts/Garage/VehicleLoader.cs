@@ -49,8 +49,6 @@ namespace Assets.Scripts.Garage
             var json = JsonUtility.ToJson(vsd);
             PlayerPrefs.SetString(Key(prefabName), json);
             PlayerPrefs.Save();
-
-            Debug.Log($"[VehicleLoader] Saved {components.Count} components for {prefabName}");
         }
 
         /// <summary>
@@ -62,14 +60,12 @@ namespace Assets.Scripts.Garage
             var key = Key(prefabName);
             if (!PlayerPrefs.HasKey(key))
             {
-                Debug.Log($"[VehicleLoader] No saved settings for {prefabName}");
                 return;
             }
 
             var vsd = JsonUtility.FromJson<VehicleSaveData>(PlayerPrefs.GetString(key));
             if (vsd?.components == null)
             {
-                Debug.LogWarning($"[VehicleLoader] Corrupt data for {prefabName}");
                 return;
             }
 
@@ -82,9 +78,6 @@ namespace Assets.Scripts.Garage
                 // Проверяем, что тип не изменился
                 if (comp.GetType().AssemblyQualifiedName != csd.assemblyQualifiedName)
                 {
-                    Debug.LogWarning(
-                        $"[VehicleLoader] Type mismatch at index {i}: " +
-                        $"{comp.GetType().Name} vs saved {csd.assemblyQualifiedName}");
                     continue;
                 }
 
@@ -99,8 +92,6 @@ namespace Assets.Scripts.Garage
                     field.SetValue(comp, parsed);
                 }
             }
-
-            Debug.Log($"[VehicleLoader] Loaded {count} components for {prefabName}");
         }
 
         static object ParseStringToFieldType(string raw, Type t)

@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts.Garage.Attributes;
+using Assets.Scripts.Garage.Interfaces;
 using System;
 using System.Reflection;
 using TMPro;
@@ -43,6 +44,7 @@ namespace Assets.Scripts.Garage
                 {
                     fi.SetValue(target, v);
                     input.text = v.ToString("0.##");
+                    ApplySettings(target);
                 });
                 input.onEndEdit.AddListener(s =>
                 {
@@ -51,6 +53,7 @@ namespace Assets.Scripts.Garage
                         v = Mathf.Clamp(v, slider.minValue, slider.maxValue);
                         fi.SetValue(target, v);
                         slider.SetValueWithoutNotify(v);
+                        ApplySettings(target);
                     }
                 });
             }
@@ -63,7 +66,10 @@ namespace Assets.Scripts.Garage
                 input.onEndEdit.AddListener(s =>
                 {
                     if (int.TryParse(s, out var v))
+                    {
                         fi.SetValue(target, v);
+                        ApplySettings(target);
+                    }
                 });
             }
             else if (fi.FieldType == typeof(bool))
@@ -71,7 +77,11 @@ namespace Assets.Scripts.Garage
                 ui = GameObject.Instantiate(boolFieldPrefab, parent);
                 var toggle = ui.GetComponentInChildren<Toggle>();
                 toggle.isOn = (bool)fi.GetValue(target);
-                toggle.onValueChanged.AddListener(v => fi.SetValue(target, v));
+                toggle.onValueChanged.AddListener(v =>
+                {
+                    fi.SetValue(target, v);
+                    ApplySettings(target);
+                });
             }
             else if (fi.FieldType.IsEnum)
             {
@@ -86,6 +96,7 @@ namespace Assets.Scripts.Garage
                 dd.onValueChanged.AddListener(i =>
                 {
                     fi.SetValue(target, Enum.Parse(fi.FieldType, names[i]));
+                    ApplySettings(target);
                 });
             }
 
@@ -96,6 +107,12 @@ namespace Assets.Scripts.Garage
 
             ui.transform.Find("Label")
               .GetComponent<TMP_Text>().text = labelText;
+        }
+
+        private void ApplySettings(Component c)
+        {
+            if (c is IApplySettings applySettings)
+                applySettings.ApplySettings();
         }
     }
 }

@@ -53,14 +53,15 @@ public class PythonScriptRunner : MonoBehaviour
         if (isRunning && updateFunc != null)
         {
             try { updateFunc(robot, Time.deltaTime); }
-            catch (System.Exception e) { Debug.LogError(e); StopScript(); }
+            catch { StopScript(); }
         }
     }
 
     void LoadAndRun()
     {
         string path = Path.Combine(Application.dataPath, "UserScripts", scriptFile);
-        if (!File.Exists(path)) { Debug.LogError($"Script {path} not found"); return; }
+        if (!File.Exists(path))
+            return; 
 
         try
         {
@@ -69,20 +70,18 @@ public class PythonScriptRunner : MonoBehaviour
             scope.SetVariable("log", (System.Action<object>)ConsoleManager.LogObj);
             // переопределяем стандартный print
             engine.Execute("import builtins\nbuiltins.print=lambda *a,**k: log(' '.join(map(str,a)))", scope);
-            source.Execute(scope);                       // выполняем модуль
+            source.Execute(scope);
             scope.TryGetVariable("update", out updateFunc);
             isRunning = true;
-            robot.ManualControl = false;                // переключаемся на скрипт
-            Debug.Log($"Python: {scriptFile} started");
+            robot.ManualControl = false;
         }
-        catch (System.Exception e) { Debug.LogError(e); }
+        catch {}
     }
 
     void StopScript()
     {
         isRunning = false;
         updateFunc = null;
-        robot.ManualControl = true;                     // вернуться к WASD
-        Debug.Log("Python stopped; manual control ON");
+        robot.ManualControl = true;
     }
 }

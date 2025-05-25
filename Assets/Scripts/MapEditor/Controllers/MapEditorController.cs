@@ -96,7 +96,6 @@ namespace Assets.Scripts.MapEditor.Controllers
                     var ed = Resources.Load<ElementData>(inst.elementPath);
                     if (!ed)
                     {
-                        Debug.LogWarning($"ElementData {inst.elementPath} not found");
                         continue;
                     }
 

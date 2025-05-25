@@ -1850,6 +1850,7 @@ GameObject:
   - component: {fileID: 3741471341335268554}
   - component: {fileID: 3144322052152575456}
   - component: {fileID: 8390540225366762198}
+  - component: {fileID: 230001767479612353}
   m_Layer: 6
   m_Name: FrontCamera
   m_TagString: Untagged
@@ -1983,6 +1984,20 @@ MonoBehaviour:
   renderWidth: 1280
   renderHeight: 720
   enableHDR: 0
+--- !u!114 &230001767479612353
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5683547124569853700}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 75c756dd9770b424b96aa18cf64aa40b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rayPrefab: {fileID: 6035297316502295080, guid: fce96402150c67a4490cc55c304d3326, type: 3}
+  rayDuration: 0.1
 --- !u!1 &5782953320177608996
 GameObject:
   m_ObjectHideFlags: 0

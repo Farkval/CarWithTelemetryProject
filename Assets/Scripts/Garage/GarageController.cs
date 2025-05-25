@@ -28,7 +28,7 @@ namespace Assets.Scripts.Garage
         {
             // Строим список кнопок. При клике вызывается OnVehicleSelected(prefab).
             listUI.Build(OnVehicleSelected);
-            lidarVizalizerToggle.onValueChanged.AddListener(UpdateLidarVizualizersEnabled);
+            lidarVizalizerToggle.onValueChanged.AddListener(UpdateLidarVisualizersEnabled);
         }
 
         void OnVehicleSelected(GameObject prefab)
@@ -46,7 +46,10 @@ namespace Assets.Scripts.Garage
             // Спавним новый экземпляр машины
             _currentInstance = Instantiate(prefab, spawnPoint.position, spawnPoint.rotation);
 
-            UpdateLidarVizualizersEnabled(lidarVizalizerToggle.isOn);
+            _currentLidarVisualizers = new List<LidarVisualizer>(
+                _currentInstance.GetComponentsInChildren<LidarVisualizer>());
+
+            UpdateLidarVisualizersEnabled(lidarVizalizerToggle.isOn);
 
             // Отключаем её встроенный контроллер и камеры, чтобы не мешали UI-редактированию
             var carCtrl = _currentInstance.GetComponent<FourWheelsCarController>();
@@ -96,21 +99,22 @@ namespace Assets.Scripts.Garage
 
         void DisableCarCameras(GameObject go)
         {
-            foreach (var cam in go.GetComponentsInChildren<Camera>())
-                cam.enabled = false;
+            //foreach (var cam in go.GetComponentsInChildren<Camera>())
+            //    cam.enabled = false;
         }
 
-        void UpdateLidarVizualizersEnabled(bool enabled)
+        void UpdateLidarVisualizersEnabled(bool enabled)
         {
-            _currentLidarVisualizers ??= new List<LidarVisualizer>();
-            if (_currentLidarVisualizers?.Count <= 0)
+            Debug.Log($"UpdateLidarVisualizersEnabled with {enabled}");
+            if (_currentLidarVisualizers == null) 
+                return;
+
+            Debug.Log($"Vizualizers count: {_currentLidarVisualizers.Count}");
+            foreach (var vis in _currentLidarVisualizers)
             {
-                _currentLidarVisualizers.AddRange(_currentPrefab.GetComponentsInChildren<LidarVisualizer>());
-            }
-            foreach (var v in _currentLidarVisualizers)
-            {
-                v.enabled = enabled;
-                v.ClearRays();
+                if (vis == null) 
+                    continue;
+                vis.enabled = enabled;
             }
         }
 
@@ -118,17 +122,13 @@ namespace Assets.Scripts.Garage
         {
             var list = new List<Component>();
 
-            // Всегда первый – CarController (если есть)
             var carCtrl = inst.GetComponent<FourWheelsCarController>();
             if (carCtrl != null) list.Add(carCtrl);
 
-            // Затем все лидары
             list.AddRange(inst.GetComponentsInChildren<FlashLidar>());
             list.AddRange(inst.GetComponentsInChildren<MechanicalLidar>());
             list.AddRange(inst.GetComponentsInChildren<MemsLidar>());
             list.AddRange(inst.GetComponentsInChildren<CameraSettings>());
-
-            // Если у вас появляются другие сенсоры – добавьте их сюда аналогично
 
             return list;
         }
