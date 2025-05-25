@@ -1,4 +1,5 @@
 using Assets.Scripts.Sensors.Models;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -26,6 +27,8 @@ namespace Assets.Scripts.Robot.Sensors.Lidars
 
         [Tooltip("Слой для рейкаста.")]
         public LayerMask layerMask = ~0;
+
+        public event Action<List<LidarPoint>> OnScanComplete;
 
         // Текущее состояние
         private List<LidarPoint> _pointCloud = new List<LidarPoint>();
@@ -109,6 +112,8 @@ namespace Assets.Scripts.Robot.Sensors.Lidars
                     }
                 }
             }
+
+            OnScanComplete?.Invoke(_pointCloud);
         }
 
         /// <summary>

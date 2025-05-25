@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace Assets.Scripts.Robot.Sensors.Cameras
+namespace Assets.Scripts.Robot.Vizualizers
 {
     [RequireComponent(typeof(Camera))]
     public class CameraVisualizer : MonoBehaviour

@@ -2,6 +2,7 @@
 using Assets.Scripts.Robot.Cars;
 using Assets.Scripts.Robot.Sensors.Cameras;
 using Assets.Scripts.Robot.Sensors.Lidars;
+using Assets.Scripts.Robot.Vizualizers;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -54,7 +55,6 @@ namespace Assets.Scripts.Garage
             // Отключаем её встроенный контроллер и камеры, чтобы не мешали UI-редактированию
             var carCtrl = _currentInstance.GetComponent<FourWheelsCarController>();
             if (carCtrl != null) carCtrl.enabled = false;
-            DisableCarCameras(_currentInstance);
 
             // Собираем список компонентов ИМЕННО с экземпляра
             _currentComponents = GatherComponents(_currentInstance);
@@ -95,12 +95,6 @@ namespace Assets.Scripts.Garage
 
             // Респавним чистый экземпляр
             OnVehicleSelected(_currentPrefab);
-        }
-
-        void DisableCarCameras(GameObject go)
-        {
-            //foreach (var cam in go.GetComponentsInChildren<Camera>())
-            //    cam.enabled = false;
         }
 
         void UpdateLidarVisualizersEnabled(bool enabled)

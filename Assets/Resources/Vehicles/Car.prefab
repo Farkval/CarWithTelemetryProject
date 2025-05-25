@@ -553,7 +553,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3087174360783599770}
   - component: {fileID: 7585318008447780475}
-  - component: {fileID: 7597088920193795222}
+  - component: {fileID: 2904356932310749018}
   m_Layer: 6
   m_Name: FlashLidar
   m_TagString: Untagged
@@ -597,16 +597,16 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   scanFrequency: 5
---- !u!114 &7597088920193795222
+--- !u!114 &2904356932310749018
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2356579323444213488}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8076193ff43fbd442b3d4000a85526ef, type: 3}
+  m_Script: {fileID: 11500000, guid: 843eda1616dcbe04799cf040ecc42b14, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   rayPrefab: {fileID: 1745874505534977353, guid: 5b4577eb43d9c6b4eb243914a29a358e, type: 3}
@@ -1552,7 +1552,7 @@ Camera:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4898264994069783814}
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 1
   m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}

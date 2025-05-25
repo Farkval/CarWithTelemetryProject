@@ -1,4 +1,7 @@
 ﻿using Assets.Scripts.Robot.Api.Interfaces;
+using Assets.Scripts.Sensors.Models;
+using System.Collections.Generic;
+using System;
 
 namespace Assets.Scripts.Robot.Sensors.Lidars
 {
@@ -13,5 +16,7 @@ namespace Assets.Scripts.Robot.Sensors.Lidars
     {
         void Initialize();
         void PerformScan();
+
+        event Action<List<LidarPoint>> OnScanComplete;
     }
 }

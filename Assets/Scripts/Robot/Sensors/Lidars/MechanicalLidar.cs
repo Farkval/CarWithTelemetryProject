@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts.Sensors.Models;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -28,6 +29,8 @@ namespace Assets.Scripts.Robot.Sensors.Lidars
 
         [Tooltip("Слой, по которому стреляют лучи. Лучше выделить отдельные слои для объектов окружения.")]
         public LayerMask layerMask = ~0; // По умолчанию все слои
+
+        public event Action<List<LidarPoint>> OnScanComplete;
 
         // Вспомогательные поля
         private float _currentRotationAngle = 0f;
@@ -118,6 +121,8 @@ namespace Assets.Scripts.Robot.Sensors.Lidars
                     // но вы можете добавить "точку на макс. дистанции", если нужно
                 }
             }
+
+            OnScanComplete?.Invoke(_pointCloud);
         }
 
         // Для визуализации в Editor
