@@ -1,11 +1,10 @@
-﻿using Assets.Scripts.Robot.Python;
+﻿using Assets.Scripts.Robot.Api.Attributes;
 
 namespace Assets.Scripts.Robot.Api.Interfaces
 {
-    [PythonStubExport("Датчик компаса")]
     public interface ICompass
     {
-        [PythonStubExport("Ориентация робота")]
+        [RobotApi]
         float YawDeg { get; }
     }
 }

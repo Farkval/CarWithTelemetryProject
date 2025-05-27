@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Assets.Scripts.Robot.Api.Attributes;
+using UnityEngine;
 
 namespace Assets.Scripts.Robot.Api.Interfaces
 {
@@ -17,11 +18,13 @@ namespace Assets.Scripts.Robot.Api.Interfaces
         /// <summary>
         /// Ширина изображения в пикселях.
         /// </summary>
+        [RobotApi]
         int Width { get; }
 
         /// <summary>
         /// Высота изображения в пикселях.
         /// </summary>
+        [RobotApi]
         int Height { get; }
 
         /// <summary>
@@ -35,6 +38,7 @@ namespace Assets.Scripts.Robot.Api.Interfaces
         /// </summary>
         /// <param name="format">Формат кодирования (PNG или JPEG).</param>
         /// <returns>Массив байтов закодированного изображения.</returns>
+        [RobotApi]
         byte[] CaptureImageBytes(ImageFormat format = ImageFormat.PNG);
     }
 }

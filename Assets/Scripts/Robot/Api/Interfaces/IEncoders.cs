@@ -1,11 +1,10 @@
-﻿using Assets.Scripts.Robot.Python;
+﻿using Assets.Scripts.Robot.Api.Attributes;
 
 namespace Assets.Scripts.Robot.Api.Interfaces
 {
-    [PythonStubExport("Датчики энкодеров")]
-    public interface IEncoders 
+    public interface IEncoders
     {
-        [PythonStubExport("Список значений энкодеров колес")]
+        [RobotApi]
         float[] WheelRPM { get; } 
     }
 }

@@ -3,7 +3,9 @@ using Assets.Scripts.Robot.Cars;
 using Assets.Scripts.Robot.Sensors.Cameras;
 using Assets.Scripts.Robot.Sensors.Lidars;
 using Assets.Scripts.Robot.Vizualizers;
+using Microsoft.Scripting.Utils;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -26,6 +28,7 @@ namespace Assets.Scripts.Garage
         private List<Component> _currentComponents;
         private List<LidarVisualizer> _currentLidarVisualizers;
         private List<CameraVisualizer> _currentCameraVisualizers;
+        private List<Camera> _carCameras;
 
         void Start()
         {
@@ -44,6 +47,7 @@ namespace Assets.Scripts.Garage
                 _currentInstance = null;
                 _currentLidarVisualizers = null;
                 _currentCameraVisualizers = null;
+                _carCameras = null;
             }
 
             _currentPrefab = prefab;
@@ -55,13 +59,14 @@ namespace Assets.Scripts.Garage
                 _currentInstance.GetComponentsInChildren<LidarVisualizer>());
             _currentCameraVisualizers = new List<CameraVisualizer>(
                 _currentInstance.GetComponentsInChildren<CameraVisualizer>());
+            _carCameras = new List<Camera>(
+                _currentInstance.GetComponentsInChildren<Camera>());
 
             UpdateLidarVisualizersEnabled(lidarVizalizerToggle.isOn);
             UpdateCameraVisualizersEnabled(cameraVizalizerToggle.isOn);
+            UpdateCarCameraDepth(_currentInstance, -1);
 
-            // Отключаем её встроенный контроллер и камеры, чтобы не мешали UI-редактированию
-            var carCtrl = _currentInstance.GetComponent<FourWheelsCarController>();
-            if (carCtrl != null) carCtrl.enabled = false;
+            ChangeCarLogicEnabled(false);
 
             // Собираем список компонентов ИМЕННО с экземпляра
             _currentComponents = GatherComponents(_currentInstance);
@@ -73,18 +78,23 @@ namespace Assets.Scripts.Garage
             inspectorUI.BuildFor(_currentComponents);
         }
 
+        private void ChangeCarLogicEnabled(bool enabled)
+        {
+            var carCtrl = _currentInstance.GetComponent<FourWheelsCarController>();
+            if (carCtrl != null)
+                carCtrl.enabled = false;
+        }
+
         public void OnSavePressed()
         {
             if (_currentInstance == null) return;
 
             // Включаем контроллер при сохранении, если нужно
-            var carCtrl = _currentInstance.GetComponent<FourWheelsCarController>();
-            if (carCtrl != null) carCtrl.enabled = true;
+            ChangeCarLogicEnabled(true);
 
             VehicleLoader.SaveSettings(_currentPrefab.name, _currentComponents);
 
-            // Снова отключаем его, чтобы не управлялся игроком
-            if (carCtrl != null) carCtrl.enabled = false;
+            ChangeCarLogicEnabled(false);
         }
 
         public void OnBackPressed()
@@ -104,14 +114,24 @@ namespace Assets.Scripts.Garage
             OnVehicleSelected(_currentPrefab);
         }
 
+        private void UpdateCarCameraDepth(GameObject car, int depth = -1)
+        {
+            var cameras = car.GetComponentsInChildren<Camera>();
+            foreach (var cam in cameras)
+            {
+                cam.depth = depth;
+                cam.clearFlags = CameraClearFlags.Depth;
+            }
+        }
+
         void UpdateLidarVisualizersEnabled(bool enabled)
         {
-            if (_currentLidarVisualizers == null) 
+            if (_currentLidarVisualizers == null)
                 return;
 
             foreach (var vis in _currentLidarVisualizers)
             {
-                if (vis == null) 
+                if (vis == null)
                     continue;
                 vis.enabled = enabled;
             }
@@ -119,28 +139,28 @@ namespace Assets.Scripts.Garage
 
         void UpdateCameraVisualizersEnabled(bool enabled)
         {
-            if (_currentCameraVisualizers == null) 
+            if (_currentCameraVisualizers == null)
                 return;
 
             foreach (var vis in _currentCameraVisualizers)
             {
-                if (vis == null) 
+                if (vis == null)
                     continue;
                 vis.enabled = enabled;
             }
         }
 
-        public static List<Component> GatherComponents(GameObject inst)
+        public static List<Component> GatherComponents(GameObject car)
         {
             var list = new List<Component>();
 
-            var carCtrl = inst.GetComponent<FourWheelsCarController>();
+            var carCtrl = car.GetComponent<FourWheelsCarController>();
             if (carCtrl != null) list.Add(carCtrl);
 
-            list.AddRange(inst.GetComponentsInChildren<FlashLidar>());
-            list.AddRange(inst.GetComponentsInChildren<MechanicalLidar>());
-            list.AddRange(inst.GetComponentsInChildren<MemsLidar>());
-            list.AddRange(inst.GetComponentsInChildren<CameraSettings>());
+            list.AddRange(car.GetComponentsInChildren<FlashLidar>());
+            list.AddRange(car.GetComponentsInChildren<MechanicalLidar>());
+            list.AddRange(car.GetComponentsInChildren<MemsLidar>());
+            list.AddRange(car.GetComponentsInChildren<CameraSettings>());
 
             return list;
         }

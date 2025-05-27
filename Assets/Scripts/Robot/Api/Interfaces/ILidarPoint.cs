@@ -3,9 +3,11 @@ using UnityEngine;
 
 namespace Assets.Scripts.Robot.Api.Interfaces
 {
-    public interface IGps
+    public interface ILidarPoint
     {
         [RobotApi]
-        Vector3 Position { get; } 
+        Vector3 WorldPosition { get; set; }
+        [RobotApi]
+        float Distance { get; set; }
     }
 }

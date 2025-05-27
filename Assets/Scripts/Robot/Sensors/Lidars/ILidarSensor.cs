@@ -17,6 +17,6 @@ namespace Assets.Scripts.Robot.Sensors.Lidars
         void Initialize();
         void PerformScan();
 
-        event Action<List<LidarPoint>> OnScanComplete;
+        event Action<List<ILidarPoint>> OnScanComplete;
     }
 }

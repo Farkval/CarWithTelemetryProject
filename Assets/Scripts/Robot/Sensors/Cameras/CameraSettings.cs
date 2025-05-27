@@ -7,7 +7,7 @@ using UnityEngine.Experimental.Rendering;
 namespace Assets.Scripts.Robot.Sensors.Cameras
 {
     [SectionName("Камера")]
-    public class CameraSettings : MonoBehaviour, IApplySettings
+    public class CameraSettings : MonoBehaviour, ICameraSensor, IApplySettings
     {
         [Header("Поля камеры")]
         [DisplayName("Угол обзора (FOV)")]
@@ -22,6 +22,9 @@ namespace Assets.Scripts.Robot.Sensors.Cameras
         [DisplayName("HDR рендер")]
         public bool enableHDR = false;
 
+        [DisplayName("Активность")]
+        public bool isEnabled;
+
         public int Width => renderWidth;
         public int Height => renderHeight;
 
@@ -32,6 +35,7 @@ namespace Assets.Scripts.Robot.Sensors.Cameras
         void Awake()
         {
             _cam = GetComponent<Camera>();
+            isEnabled = _cam.enabled;
             ApplySettings();
         }
 
@@ -47,6 +51,8 @@ namespace Assets.Scripts.Robot.Sensors.Cameras
         {
             if (_cam == null) 
                 return;
+
+            _cam.enabled = isEnabled;
 
             // 1) Меняем field of view
             _cam.fieldOfView = fieldOfView;

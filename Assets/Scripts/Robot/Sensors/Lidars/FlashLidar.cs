@@ -1,7 +1,10 @@
 ﻿using Assets.Scripts.Garage.Attributes;
+using Assets.Scripts.Garage.Interfaces;
+using Assets.Scripts.Robot.Api.Interfaces;
 using Assets.Scripts.Sensors.Models;
 using System;
 using System.Collections.Generic;
+using System.Runtime.Remoting.Messaging;
 using UnityEngine;
 
 namespace Assets.Scripts.Robot.Sensors.Lidars
@@ -11,7 +14,7 @@ namespace Assets.Scripts.Robot.Sensors.Lidars
     ///    При каждом скане мы посылаем N x M лучей в заданном поле зрения.
     /// </summary>
     [SectionName("Импульсный лидар")]
-    public class FlashLidar : MonoBehaviour, ILidarSensor
+    public class FlashLidar : MonoBehaviour, ILidarSensor, IApplySettings
     {
         [Header("Main Settings")]
         [DisplayName("Максимальная дистанция")]
@@ -35,19 +38,28 @@ namespace Assets.Scripts.Robot.Sensors.Lidars
         [DisplayName("Частота сканов в едиинцу времени")]
         public float scanFrequency = 5f;
 
-        public event Action<List<LidarPoint>> OnScanComplete;
+        [Tooltip("Активность элемента")]
+        [DisplayName("Активность")]
+        public bool isEnabled;
 
-        private List<LidarPoint> _pointCloud = new List<LidarPoint>();
+        public event Action<List<ILidarPoint>> OnScanComplete;
+
+        private List<ILidarPoint> _pointCloud = new List<ILidarPoint>();
         private float _nearestDistance = Mathf.Infinity;
         private float _scanTimer = 0f;
 
-        public List<LidarPoint> PointCloud => _pointCloud;
+        public List<ILidarPoint> PointCloud => _pointCloud;
 
         public void Initialize()
         {
             _pointCloud.Clear();
             _nearestDistance = Mathf.Infinity;
             _scanTimer = 0f;
+        }
+
+        private void Awake()
+        {
+            enabled = isEnabled;
         }
 
         private void Start()
@@ -57,6 +69,9 @@ namespace Assets.Scripts.Robot.Sensors.Lidars
 
         private void Update()
         {
+            if (!isEnabled)
+                return;
+
             _scanTimer += Time.deltaTime;
             if (_scanTimer >= 1f / scanFrequency)
             {
@@ -105,6 +120,11 @@ namespace Assets.Scripts.Robot.Sensors.Lidars
             }
 
             OnScanComplete?.Invoke(_pointCloud);
+        }
+
+        public void ApplySettings()
+        {
+            enabled = isEnabled;
         }
 
         private void OnDrawGizmosSelected()

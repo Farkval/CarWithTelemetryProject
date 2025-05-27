@@ -1,3 +1,5 @@
+using Assets.Scripts.Garage.Attributes;
+using Assets.Scripts.Robot.Api.Interfaces;
 using Assets.Scripts.Sensors.Models;
 using System;
 using System.Collections.Generic;
@@ -25,20 +27,24 @@ namespace Assets.Scripts.Robot.Sensors.Lidars
         [Tooltip("Частота сканирования (сколько раз в секунду мы обходим все строки).")]
         public float scanFrequency = 10f;
 
+        [Tooltip("Активность элемента")]
+        [DisplayName("Активность")]
+        public bool isEnabled = true;
+
         [Tooltip("Слой для рейкаста.")]
         public LayerMask layerMask = ~0;
 
-        public event Action<List<LidarPoint>> OnScanComplete;
+        public event Action<List<ILidarPoint>> OnScanComplete;
 
         // Текущее состояние
-        private List<LidarPoint> _pointCloud = new List<LidarPoint>();
+        private List<ILidarPoint> _pointCloud = new List<ILidarPoint>();
         private float _nearestDistance = Mathf.Infinity;
         private float _scanTimer = 0f;
 
         // Индекс текущей строки (сканируем построчно в Update, пока не пройдём все строки)
         private int _currentLineIndex = 0;
 
-        public List<LidarPoint> PointCloud => _pointCloud;
+        public List<ILidarPoint> PointCloud => _pointCloud;
 
         public void Initialize()
         {
@@ -48,6 +54,11 @@ namespace Assets.Scripts.Robot.Sensors.Lidars
             _currentLineIndex = 0;
         }
 
+        private void Awake()
+        {
+            enabled = isEnabled;
+        }
+
         private void Start()
         {
             Initialize();
@@ -55,6 +66,9 @@ namespace Assets.Scripts.Robot.Sensors.Lidars
 
         private void Update()
         {
+            if (!isEnabled)
+                return;
+
             _scanTimer += Time.deltaTime;
             float timePerFrame = 1f / (scanFrequency * verticalLines);
             // Каждые timePerFrame секунд сканируем очередную строку
@@ -128,6 +142,11 @@ namespace Assets.Scripts.Robot.Sensors.Lidars
             {
                 ScanSingleLine(i);
             }
+        }
+
+        public void ApplySettings()
+        {
+            enabled = isEnabled;
         }
 
         private void OnDrawGizmosSelected()

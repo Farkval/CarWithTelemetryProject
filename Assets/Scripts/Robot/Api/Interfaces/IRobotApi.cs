@@ -1,20 +1,23 @@
-﻿using Assets.Scripts.Robot.Python;
+﻿using Assets.Scripts.Robot.Api.Attributes;
 using System.Collections.Generic;
 
 namespace Assets.Scripts.Robot.Api.Interfaces
 {
-    [PythonStubExport("Управление роботом")]
     public interface IRobotAPI : IMotion, IEncoders, IGps, ICompass
     {
         /// <summary>
         /// Список лидаров
         /// </summary>
-        [PythonStubExport("Датчики лидаров")]
+        [RobotApi]
         List<ILidar> Lidars { get; }
+        /// <summary>
+        /// Список камер
+        /// </summary>
+        [RobotApi]
+        List<ICameraSensor> Cameras { get; }
         /// <summary>
         /// Ручное управление
         /// </summary>
-        [PythonStubExport("Ручное управление")]
         bool ManualControl { get; set; }
     }
 }

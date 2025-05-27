@@ -1,4 +1,6 @@
-﻿using Assets.Scripts.Sensors.Models;
+﻿using Assets.Scripts.Garage.Attributes;
+using Assets.Scripts.Robot.Api.Interfaces;
+using Assets.Scripts.Sensors.Models;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -27,18 +29,22 @@ namespace Assets.Scripts.Robot.Sensors.Lidars
         [Tooltip("Частота сканирования (обновление за секунду). При слишком высокой нужно оптимизировать код.")]
         public float scanFrequency = 10f;
 
+        [Tooltip("Активность элемента")]
+        [DisplayName("Активность")]
+        public bool isEnabled;
+
         [Tooltip("Слой, по которому стреляют лучи. Лучше выделить отдельные слои для объектов окружения.")]
         public LayerMask layerMask = ~0; // По умолчанию все слои
 
-        public event Action<List<LidarPoint>> OnScanComplete;
+        public event Action<List<ILidarPoint>> OnScanComplete;
 
         // Вспомогательные поля
         private float _currentRotationAngle = 0f;
         private float _scanTimer = 0f;
-        private List<LidarPoint> _pointCloud = new List<LidarPoint>();
+        private List<ILidarPoint> _pointCloud = new List<ILidarPoint>();
         private float _nearestDistance = Mathf.Infinity;
 
-        public List<LidarPoint> PointCloud => _pointCloud;
+        public List<ILidarPoint> PointCloud => _pointCloud;
 
         public void Initialize()
         {
@@ -46,6 +52,11 @@ namespace Assets.Scripts.Robot.Sensors.Lidars
             _nearestDistance = Mathf.Infinity;
             _currentRotationAngle = 0f;
             _scanTimer = 0f;
+        }
+
+        private void Awake()
+        {
+            enabled = isEnabled;
         }
 
         private void Start()
@@ -58,6 +69,9 @@ namespace Assets.Scripts.Robot.Sensors.Lidars
         /// </summary>
         private void Update()
         {
+            if (!isEnabled)
+                return;
+
             // Плавно вращаем лидар
             _currentRotationAngle += rotationSpeed * Time.deltaTime;
             // Чтобы угол не рос бесконечно
@@ -123,6 +137,11 @@ namespace Assets.Scripts.Robot.Sensors.Lidars
             }
 
             OnScanComplete?.Invoke(_pointCloud);
+        }
+
+        public void ApplySettings()
+        {
+            enabled = isEnabled;
         }
 
         // Для визуализации в Editor

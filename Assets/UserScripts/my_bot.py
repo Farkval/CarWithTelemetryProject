@@ -1,26 +1,22 @@
-# Assets/UserScripts/my_bot.py
-# Функция update(robot, dt) вызывается каждый кадр Unity.
-from robot import robot
+import robot
+from math import sin, cos
 
-import math
+class EightDriver:
+    def __init__(self):
+        self.t = 0.0
+
+    def update(self, robot: robot.IRobotAPI, dt: float):
+        self.t += dt
+        robot.SetMotorPower(1, -1)
+        
+        # безопасная работа с лидаром
+        if robot.Lidars:
+            pts = robot.Lidars[0].PointCloud
+            if pts:
+                dmin = min(pt.Distance for pt in pts)
+                print(f"Nearest obstacle: {dmin:.2f} m")
+
+bot = EightDriver()
 
 def update(robot, dt):
-    """
-    robot : IRobotAPI  (см. свойства)
-      • robot.SetMotorPower(left, right)  –1..1
-      • robot.Brake(power)               0..1
-      • robot.Position  (Vector3)
-      • robot.YawDeg    (float)
-      • robot.WheelRPM  (list[float])
-      • robot.Lidars    (list[ILidar])
-    dt    : float  – прошедшее время, сек
-    """
-    print("Едем едем едем быстро быстро")
-    # пример: едем прямо 3 секунды, потом тормозим
-    if update.t < 3:
-        robot.SetMotorPower(0.4, 0.4)
-    else:
-        robot.Brake()
-    update.t += dt
-
-update.t = 0
+    bot.update(robot, dt)

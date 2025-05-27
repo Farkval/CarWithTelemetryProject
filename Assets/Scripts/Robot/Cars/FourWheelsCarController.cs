@@ -58,21 +58,20 @@ namespace Assets.Scripts.Robot.Cars
         public Vector3 Position => transform.position;
         public float YawDeg => transform.eulerAngles.y;
         public List<ILidar> Lidars { get; } = new();
-        public bool ManualControl { get; set; } = true;         // TRUE – WASD, FALSE – script
+        public bool ManualControl { get; set; } = true;
+        public List<ICameraSensor> Cameras => new();
         #endregion
 
         #region ⭑ private state
-        Rigidbody _rb;
-        float _currentSpeed;
-        readonly float[] _rpm = new float[4];
-
+        private Rigidbody _rb;
+        private float _currentSpeed;
+        private readonly float[] _rpm = new float[4];
         // cmd-каналы от скрипта
-        float _cmdLeft, _cmdRight, _brakeCmd;
-
+        private float _cmdLeft, _cmdRight, _brakeCmd;
         // friction templates
-        WheelFrictionCurve _flFwd0, _flSide0, _frFwd0, _frSide0, _rlFwd0, _rlSide0, _rrFwd0, _rrSide0;
-
+        private WheelFrictionCurve _flFwd0, _flSide0, _frFwd0, _frSide0, _rlFwd0, _rlSide0, _rrFwd0, _rrSide0;
         private MapTerrain _terrain;
+        private PythonScriptRunner _pythonScriptRunner;
         #endregion
 
         void Awake()
@@ -93,7 +92,9 @@ namespace Assets.Scripts.Robot.Cars
 
             // собрать лидары в детях
             Lidars.AddRange(GetComponentsInChildren<ILidar>());
+            Cameras.AddRange(GetComponentsInChildren<ICameraSensor>());
             _terrain = FindFirstObjectByType<MapTerrain>();
+            _pythonScriptRunner = GetComponent<PythonScriptRunner>();
         }
 
         void FixedUpdate()
@@ -260,21 +261,28 @@ namespace Assets.Scripts.Robot.Cars
 
         void UpdateWheelMeshes()
         {
-            float frontLeftSteer = frontLeftWheel.steerAngle;
-            float frontRightSteer = frontRightWheel.steerAngle;
+            UpdateSingleWheel(frontLeftWheel, frontLeftMesh);
+            UpdateSingleWheel(frontRightWheel, frontRightMesh);
+            UpdateSingleWheel(rearLeftWheel, rearLeftMesh);
+            UpdateSingleWheel(rearRightWheel, rearRightMesh);
+        }
 
-            if (frontLeftMesh != null)
-            {
-                Vector3 euler = frontLeftMesh.localEulerAngles;
-                euler.y = frontLeftSteer;
-                frontLeftMesh.localEulerAngles = euler;
-            }
+        void UpdateSingleWheel(WheelCollider collider, Transform mesh)
+        {
+            if (mesh == null) return;
 
-            if (frontRightMesh != null)
+            // получаем точную мировую позицию и ориентацию колеса
+            collider.GetWorldPose(out Vector3 pos, out Quaternion quat);
+
+            mesh.SetPositionAndRotation(pos, quat);
+
+            // если это переднее колесо, добавляем поворот руля
+            if (collider == frontLeftWheel || collider == frontRightWheel)
             {
-                Vector3 euler = frontRightMesh.localEulerAngles;
-                euler.y = frontRightSteer;
-                frontRightMesh.localEulerAngles = euler;
+                var euler = mesh.localEulerAngles;
+                var steerAngle = collider.steerAngle;
+                euler.y = steerAngle;
+                mesh.localEulerAngles = euler;
             }
         }
     }

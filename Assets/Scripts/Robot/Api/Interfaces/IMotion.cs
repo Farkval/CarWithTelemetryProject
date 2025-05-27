@@ -1,13 +1,12 @@
-﻿using Assets.Scripts.Robot.Python;
+﻿using Assets.Scripts.Robot.Api.Attributes;
 
 namespace Assets.Scripts.Robot.Api.Interfaces
 {
-    [PythonStubExport("Управление роботом")]
     public interface IMotion
     {
-        [PythonStubExport("Движение")]
+        [RobotApi]
         void SetMotorPower(float left, float right);
-        [PythonStubExport("Тормоз")]
+        [RobotApi]
         void Brake(float power = 1);
     }
 }

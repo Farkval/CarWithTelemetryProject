@@ -1,5 +1,5 @@
-﻿using Assets.Scripts.Robot.Sensors.Lidars;
-using Assets.Scripts.Sensors.Models;
+﻿using Assets.Scripts.Robot.Api.Interfaces;
+using Assets.Scripts.Robot.Sensors.Lidars;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -47,7 +47,7 @@ namespace Assets.Scripts.Robot.Vizualizers
                 Clear(ctx);
         }
 
-        void OnScan(SensorContext ctx, List<LidarPoint> cloud)
+        void OnScan(SensorContext ctx, List<ILidarPoint> cloud)
         {
             if (!enabled) 
                 return;

@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 5145534373150472865}
   - component: {fileID: 5338533491213228690}
-  - component: {fileID: 7981313019168594348}
   - component: {fileID: 932132906976857141}
   m_Layer: 6
   m_Name: Camera
@@ -85,14 +84,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!81 &7981313019168594348
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 119356050976630595}
-  m_Enabled: 1
 --- !u!114 &932132906976857141
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -272,13 +263,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 761095745696181940}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: 0.7071068, w: 0.7071068}
+  m_LocalRotation: {x: 0, y: 0, z: 0.7071068, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.8000002, y: 0.100000024, z: 0.8}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3567453092856914542}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
 --- !u!33 &6793007984044876855
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -734,6 +725,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   scanFrequency: 5
+  isEnabled: 1
 --- !u!114 &2904356932310749018
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -861,7 +853,7 @@ Camera:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3159760452500553277}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_ClearFlags: 1
   m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
@@ -965,6 +957,7 @@ MonoBehaviour:
   renderWidth: 1280
   renderHeight: 720
   enableHDR: 0
+  isEnabled: 0
 --- !u!1 &3295140017024114586
 GameObject:
   m_ObjectHideFlags: 0
@@ -976,6 +969,7 @@ GameObject:
   - component: {fileID: 1997241369501977372}
   - component: {fileID: 8007620225883345690}
   - component: {fileID: 5029888652568703608}
+  - component: {fileID: 7729966620113162297}
   m_Layer: 6
   m_Name: Car
   m_TagString: Player
@@ -1067,6 +1061,20 @@ MonoBehaviour:
   globalFrictionMultiplier: 1
   forwardFrictionMultiplier: 1
   sidewaysFrictionMultiplier: 1
+--- !u!114 &7729966620113162297
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3295140017024114586}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f443d33d0f86149409067c9d25f56565, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  scriptFile: my_bot.py
+  autoRun: 0
 --- !u!1 &3318343320100969882
 GameObject:
   m_ObjectHideFlags: 0
@@ -1108,7 +1116,7 @@ Camera:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3318343320100969882}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_ClearFlags: 1
   m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
@@ -1212,6 +1220,7 @@ MonoBehaviour:
   renderWidth: 1280
   renderHeight: 720
   enableHDR: 0
+  isEnabled: 0
 --- !u!1 &3352654363334497081
 GameObject:
   m_ObjectHideFlags: 0
@@ -1545,7 +1554,7 @@ Camera:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4725026306726416600}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_ClearFlags: 1
   m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
@@ -1649,6 +1658,7 @@ MonoBehaviour:
   renderWidth: 1280
   renderHeight: 720
   enableHDR: 0
+  isEnabled: 0
 --- !u!1 &4920534299667758359
 GameObject:
   m_ObjectHideFlags: 0
@@ -1737,6 +1747,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   scanFrequency: 5
+  isEnabled: 1
 --- !u!1 &5144937357485808180
 GameObject:
   m_ObjectHideFlags: 0
@@ -1889,7 +1900,7 @@ Camera:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5683547124569853700}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_ClearFlags: 1
   m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
@@ -1993,6 +2004,7 @@ MonoBehaviour:
   renderWidth: 1280
   renderHeight: 720
   enableHDR: 0
+  isEnabled: 0
 --- !u!114 &230001767479612353
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2060,6 +2072,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   scanFrequency: 5
+  isEnabled: 1
 --- !u!1 &6535228972212785391
 GameObject:
   m_ObjectHideFlags: 0
@@ -2513,6 +2526,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   scanFrequency: 5
+  isEnabled: 1
 --- !u!1 &8672973560198587244
 GameObject:
   m_ObjectHideFlags: 0
