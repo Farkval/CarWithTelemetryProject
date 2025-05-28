@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -42,6 +43,10 @@ namespace Assets.Scripts.Garage
                 {
                     btn.GetComponentInChildren<Image>().sprite = icon;
                 }
+                btn.GetComponentInChildren<TMP_Text>().text = go.name;
+
+                var vb = btn.gameObject.AddComponent<VehicleButtonUI>();
+                vb.OnClick = () => onClick(go);
 
                 // Навешиваем обработчик
                 btn.onClick.AddListener(() => onClick(go));

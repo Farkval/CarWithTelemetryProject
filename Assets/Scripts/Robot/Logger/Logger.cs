@@ -47,7 +47,11 @@ namespace Assets.Scripts.Robot.Logger
 
         private void RefreshText()
         {
+            if (consoleText == null)
+                return;
+
             consoleText.text = string.Join("\n", _lines);
+
             // автоскролл вниз:
             Canvas.ForceUpdateCanvases();
             var sv = consoleText.GetComponentInParent<ScrollRect>();

@@ -2,8 +2,9 @@
 {
     public enum MapSize 
     { 
-        Small = 48, 
-        Medium = 96, 
-        Large = 192,
+        Small = 50, 
+        Medium = 100, 
+        Large = 150,
+        ExtraLarge = 200,
     }
 }

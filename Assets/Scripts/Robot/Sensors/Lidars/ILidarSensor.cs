@@ -1,7 +1,6 @@
 ﻿using Assets.Scripts.Robot.Api.Interfaces;
-using Assets.Scripts.Sensors.Models;
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
 
 namespace Assets.Scripts.Robot.Sensors.Lidars
 {

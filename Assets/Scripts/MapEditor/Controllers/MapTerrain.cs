@@ -1,6 +1,7 @@
 ﻿using Assets.Scripts.MapEditor.Models.Enums;
 using System;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Assets.Scripts.MapEditor.Controllers
 {
@@ -27,14 +28,14 @@ namespace Assets.Scripts.MapEditor.Controllers
 
         // ---------- runtime-поля ----------
         // высоты
-        int _heRes;      // узлов по стороне
-        float _heCell;     // шаг по высоте  (м)
-        float[,] _heights;
+        private int _heRes;      // узлов по стороне
+        private float _heCell;     // шаг по высоте  (м)
+        private float[,] _heights;
 
         // покрытие
-        int _suRes;      // плиток по стороне
-        float _suCell;     // шаг по покрытию (м)
-        SurfaceType[,] _surface;
+        private int _suRes;      // плиток по стороне
+        private float _suCell;     // шаг по покрытию (м)
+        private SurfaceType[,] _surface;
 
         // визуализация
         Mesh _mesh;
@@ -96,7 +97,12 @@ namespace Assets.Scripts.MapEditor.Controllers
             Array.Copy(_heights, c, _heights.Length);
             return c;
         }
-        public void SetHeights(float[,] h) { _heights = h; UpdateMesh(); }
+
+        public void SetHeights(float[,] h) 
+        { 
+            _heights = h; 
+            UpdateMesh(); 
+        }
         #endregion
 
         #region ─── SURFACE ────────────────────────────────────────────────────
@@ -150,12 +156,6 @@ namespace Assets.Scripts.MapEditor.Controllers
             ApplyVertexColors();
         }
 
-        public SurfaceType[,] GetSurfaceCopy()
-        {
-            var dst = new SurfaceType[_suRes, _suRes];
-            Array.Copy(_surface, dst, _surface.Length);
-            return dst;
-        }
         public void SetSurfaces(SurfaceType[,] src)
         {
             _surface = src;
@@ -167,6 +167,9 @@ namespace Assets.Scripts.MapEditor.Controllers
         void GenerateMesh()
         {
             _mesh = new Mesh { name = "TerrainMesh" };
+            _mesh.indexFormat = IndexFormat.UInt32;
+
+
             Vector3[] verts = new Vector3[(_heRes + 1) * (_heRes + 1)];
             Vector2[] uvs = new Vector2[verts.Length];
             int[] tris = new int[_heRes * _heRes * 6];
@@ -197,7 +200,8 @@ namespace Assets.Scripts.MapEditor.Controllers
             _mesh.colors = _vertColors;
 
             GetComponent<MeshFilter>().mesh = _mesh;
-            GetComponent<MeshCollider>().sharedMesh = _mesh;
+            var mc = GetComponent<MeshCollider>();
+            mc.sharedMesh = _mesh;
         }
 
         void UpdateMesh()

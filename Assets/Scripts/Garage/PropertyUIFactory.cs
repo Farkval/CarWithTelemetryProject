@@ -3,7 +3,6 @@ using Assets.Scripts.Garage.Interfaces;
 using System;
 using System.Reflection;
 using TMPro;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -103,7 +102,7 @@ namespace Assets.Scripts.Garage
             var dispAttr = fi.GetCustomAttribute<DisplayNameAttribute>();
             var labelText = dispAttr != null
                 ? dispAttr.Name
-                : ObjectNames.NicifyVariableName(fi.Name);
+                : InspectorPanelUI.NicifyName(fi.Name);
 
             ui.transform.Find("Label")
               .GetComponent<TMP_Text>().text = labelText;

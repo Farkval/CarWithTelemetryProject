@@ -3,7 +3,9 @@ using Assets.Scripts.MapEditor.Consts;
 using Assets.Scripts.MapEditor.Controllers;
 using Assets.Scripts.MapEditor.Models;
 using Assets.Scripts.MapEditor.Triggers;
+using Assets.Scripts.Utils;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 
 namespace Assets.Scripts.Game.Map
@@ -19,9 +21,9 @@ namespace Assets.Scripts.Game.Map
 
         public void Load()
         {
-            //string path = Path.Combine(Application.persistentDataPath, "lastMap.json");
-            string path = UnityEditor.EditorUtility.OpenFilePanel("Выбрать карту", "", "json");
-
+            var path = FileDialog.ShowOpen("JSON файлы (*.json)|*.json", "Выбрать карту")?.FirstOrDefault();
+            if (string.IsNullOrEmpty(path))
+                return;
             if (!File.Exists(path)) 
             {
                 return; 

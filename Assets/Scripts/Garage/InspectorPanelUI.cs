@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Reflection;
 using TMPro;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -41,7 +40,7 @@ namespace Assets.Scripts.Garage
                     .GetCustomAttribute<SectionNameAttribute>();
                                 label.text = secAttr != null
                                     ? secAttr.Name
-                                    : ObjectNames.NicifyVariableName(target.GetType().Name);
+                                    : NicifyName(target.GetType().Name);
 
                 // Получаем toggle внутри headerPrefab
                 var toggle = headerGO.GetComponentInChildren<Toggle>();
@@ -76,6 +75,16 @@ namespace Assets.Scripts.Garage
                     factory.CreateUIFor(fi, target, containerGO.transform);
                 }
             }
+        }
+
+        public static string NicifyName(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                return string.Empty;
+
+            var nicified = System.Text.RegularExpressions.Regex.Replace(
+                name, @"([a-z])([A-Z])", "$1 $2");
+            return char.ToUpper(nicified[0]) + nicified.Substring(1);
         }
     }
 }

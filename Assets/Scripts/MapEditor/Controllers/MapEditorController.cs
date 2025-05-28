@@ -5,6 +5,7 @@ using Assets.Scripts.MapEditor.Models.Enums;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
@@ -23,25 +24,56 @@ namespace Assets.Scripts.MapEditor.Controllers
 
         private ElementData _activeElement;
         private GameObject _previewInstance;
-        private GameObject _spawnInstance, _finishInstance;
 
         private readonly UndoRedoController _undoRedo = new UndoRedoController(100);
         private readonly List<PlacedObject> _placedObjects = new();
         private Vector3 _origPreviewScale = Vector3.one;
         private float _currentScaleFactor = 1f;
-        private Dictionary<Renderer, Color> _original = new();
+        private readonly Dictionary<Renderer, Color> _original = new();
         private PlacedObject _dragObj;           // объект, который сейчас тянут
         private Coroutine _dragRoutine;       // сама корутина-перетаскивания
         private Vector3 _beforePos, _beforeRot, _beforeScale;
+        private ElementPaletteUIController _elementPaletteUIController;
+        private MapTerrain _terrain;
 
         public UndoRedoController UndoRedoManager { get { return _undoRedo; } }
 
+        private void Awake()
+        {
+            _elementPaletteUIController = FindFirstObjectByType<ElementPaletteUIController>();
+            _terrain = FindFirstObjectByType<MapTerrain>();
+        }
+
         private void Update()
         {
+            HandleHotKey();
             HandleSelection();
             HandlePreview();
             HandlePlacement();
-            HandleUndoRedo();
+        }
+
+        private void HandleHotKey()
+        {
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                _elementPaletteUIController.ClearSelection();
+            }
+            if (Input.GetKeyDown(KeyCode.Z) && Input.GetKey(KeyCode.LeftControl))
+            {
+                var res = _undoRedo.Undo();
+                if (res is PlacedObject obj)
+                {
+                    _placedObjects.Remove(obj);
+                }
+            }
+            if (Input.GetKeyDown(KeyCode.Y) && Input.GetKey(KeyCode.LeftControl))
+            {
+                var res = _undoRedo.Redo();
+                if (res is PlacedObject obj)
+                {
+                    _placedObjects.Add(obj);
+                }
+            }
         }
 
         public void UndoCommand()
@@ -55,7 +87,7 @@ namespace Assets.Scripts.MapEditor.Controllers
 
         public void RedoCommand()
         {
-            var res =_undoRedo.Redo();
+            var res = _undoRedo.Redo();
             if (res is PlacedObject obj)
             {
                 _placedObjects.Add(obj);
@@ -102,7 +134,6 @@ namespace Assets.Scripts.MapEditor.Controllers
                     GameObject obj = Instantiate(ed.prefab);
                     obj.transform.SetPositionAndRotation(inst.position, Quaternion.Euler(inst.rotation));
                     obj.transform.localScale = inst.localScale;
-                    PostHandleStartFinishPoint(obj, ed);
                     _placedObjects.Add(new PlacedObject(obj, ed));
                 }
             });
@@ -117,7 +148,8 @@ namespace Assets.Scripts.MapEditor.Controllers
         {
             _activeElement = data;
 
-            if (_previewInstance) Destroy(_previewInstance);
+            if (_previewInstance)
+                Destroy(_previewInstance);
 
             if (data != null)
             {
@@ -146,18 +178,22 @@ namespace Assets.Scripts.MapEditor.Controllers
         void HandleSelection()
         {
             /* 1. Если уже тащим – ничего не делаем */
-            if (_dragRoutine != null || _activeElement != null) return;
+            if (_dragRoutine != null || _activeElement != null)
+                return;
 
             /* 2. Кликнули ЛКМ? */
             if (Input.GetMouseButtonDown(0) &&
                 !EventSystem.current.IsPointerOverGameObject())
             {
-                if (Physics.Raycast(sceneCamera.ScreenPointToRay(Input.mousePosition),
-                                    out var hit, 500f, LayerMask.GetMask("Default")))
+                var ray = sceneCamera.ScreenPointToRay(Input.mousePosition);
+                var mask = LayerMask.GetMask("Default");
+                if (Physics.Raycast(ray, out var hit, 500f, mask, QueryTriggerInteraction.Collide))
                 {
                     // ищем объект среди размещённых
-                    _dragObj = _placedObjects.Find(p => p.instance == hit.collider.gameObject
-                                                     || p.instance.transform.IsChildOf(hit.collider.transform));
+                    _dragObj = _placedObjects.Find(p => 
+                            p.instance == hit.collider.gameObject ||
+                            hit.collider.transform.IsChildOf(p.instance.transform));
+
                     if (_dragObj != null)
                     {
                         _dragRoutine = StartCoroutine(DragObjectLoop(_dragObj));
@@ -176,10 +212,10 @@ namespace Assets.Scripts.MapEditor.Controllers
             _beforeRot = tr.rotation.eulerAngles;
             _beforeScale = tr.localScale;
 
-            MapTerrain terr = FindFirstObjectByType<MapTerrain>();
-            float half = terr.MapHalfWorld;      // helper свойство в MapTerrain
+            float half = _terrain.MapHalfWorld;      // helper свойство в MapTerrain
 
             bool changed = false;
+            bool deleted = false;
 
             while (Input.GetMouseButton(0))
             {
@@ -197,6 +233,17 @@ namespace Assets.Scripts.MapEditor.Controllers
                     tr.localScale *= k;
                     changed = true;
                 }
+                else if (Input.GetKey(KeyCode.H))
+                {
+                    float dy = Input.GetAxis("Mouse Y") * 0.05f;
+                    tr.position += Vector3.up * dy;
+                    changed = true;
+                }
+                else if (Input.GetKey(KeyCode.Delete))
+                {
+                    deleted = true;
+                    break;
+                }
                 else                                              // MOVE
                 {
                     Plane g = new(Vector3.up, 0);
@@ -207,6 +254,7 @@ namespace Assets.Scripts.MapEditor.Controllers
                         // «скольжение» по границе
                         p.x = Mathf.Clamp(p.x, -half, half);
                         p.z = Mathf.Clamp(p.z, -half, half);
+                        p.y = tr.position.y;
                         tr.position = p;
                         changed = true;
                     }
@@ -224,6 +272,13 @@ namespace Assets.Scripts.MapEditor.Controllers
                         _beforePos, _beforeRot, _beforeScale,
                         tr.position, tr.rotation.eulerAngles, tr.localScale));
             }
+            if (deleted)
+            {
+                po.instance.SetActive(false);
+                _placedObjects.Remove(po);
+                _undoRedo.AddAction(
+                    new DeleteAction(po));
+            }
 
             _dragRoutine = null;
             _dragObj = null;
@@ -232,7 +287,7 @@ namespace Assets.Scripts.MapEditor.Controllers
         void Highlight(PlacedObject po, bool state)
         {
             var r = po.instance.GetComponentInChildren<Renderer>();
-            if (!r) 
+            if (!r)
                 return;
 
             if (!_original.ContainsKey(r))                    // кэш оригинала
@@ -326,14 +381,12 @@ namespace Assets.Scripts.MapEditor.Controllers
 
             if (Input.GetMouseButtonDown(0) && !Input.GetKey(KeyCode.R) && !Input.GetKey(KeyCode.S) && !Input.GetKey(KeyCode.H))
             {
-                PreHandleStartFinishPlacement();
+                RemoveFinishInstanceIfExisting();
 
                 GameObject obj = Instantiate(_activeElement.prefab);
                 obj.transform.position = _previewInstance.transform.position;
                 obj.transform.rotation = _previewInstance.transform.rotation;
                 obj.transform.localScale = _previewInstance.transform.localScale;
-
-                PostHandleStartFinishPoint(obj, _activeElement);
 
                 var placedObject = new PlacedObject(obj, _activeElement);
 
@@ -343,45 +396,16 @@ namespace Assets.Scripts.MapEditor.Controllers
             }
         }
 
-        private void PreHandleStartFinishPlacement()
+        private void RemoveFinishInstanceIfExisting()
         {
-            if (_activeElement.name == ElementNameConst.START_INSTANCE_NAME)
-            {
-                Destroy(_spawnInstance);
-                _placedObjects.RemoveAll(po => po.data.name == ElementNameConst.START_INSTANCE_NAME);
-            }
-            if (_activeElement.name == ElementNameConst.FINISH_INSTANCE_NAME)
-            {
-                Destroy(_finishInstance);
-                _placedObjects.RemoveAll(po => po.data.name == ElementNameConst.FINISH_INSTANCE_NAME);
-            }
-        }
+            if (_activeElement.name != ElementNameConst.FINISH_INSTANCE_NAME)
+                return;
 
-        private void PostHandleStartFinishPoint(GameObject obj, ElementData ed)
-        {
-            if (ed.name == ElementNameConst.START_INSTANCE_NAME)
-                _spawnInstance = obj;
-            if (ed.name == ElementNameConst.FINISH_INSTANCE_NAME)
-                _finishInstance = obj;
-        }
-
-        private void HandleUndoRedo()
-        {
-            if (Input.GetKeyDown(KeyCode.Z) && Input.GetKey(KeyCode.LeftControl))
+            var obj = _placedObjects.FirstOrDefault(o => o.data.name == ElementNameConst.FINISH_INSTANCE_NAME);
+            if (obj != null)
             {
-                var res = _undoRedo.Undo(); 
-                if (res is PlacedObject obj)
-                {
-                    _placedObjects.Remove(obj);
-                }
-            }
-            if (Input.GetKeyDown(KeyCode.Y) && Input.GetKey(KeyCode.LeftControl))
-            {
-                var res = _undoRedo.Redo();
-                if (res is PlacedObject obj)
-                {
-                    _placedObjects.Add(obj);
-                }
+                Destroy(obj.instance);
+                _placedObjects.Remove(obj);
             }
         }
 
