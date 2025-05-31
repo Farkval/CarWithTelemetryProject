@@ -284,6 +284,8 @@ namespace Assets.Scripts.Game.Controllers
             addPlayerButton.interactable = true;
         }
 
+        public void InteractiveStart(bool flag) => startButton.interactable = flag;
+
         private void UpdateSpawnPointsDropdown()
         {
             var options = new List<string> { "Выберите старт" };

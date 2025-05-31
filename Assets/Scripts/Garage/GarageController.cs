@@ -49,7 +49,7 @@ namespace Assets.Scripts.Garage
             _currentPrefab = prefab;
 
             // Спавним новый экземпляр машины
-            _currentInstance = Instantiate(prefab, spawnPoint.position, spawnPoint.rotation);
+            _currentInstance = Instantiate(prefab, spawnPoint.position + Vector3.up * 1, spawnPoint.rotation);
 
             _currentLidarVisualizers = new List<LidarVisualizer>(
                 _currentInstance.GetComponentsInChildren<LidarVisualizer>());

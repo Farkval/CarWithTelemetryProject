@@ -72,6 +72,11 @@ namespace Assets.Scripts.Robot.Cars
         private WheelFrictionCurve _flFwd0, _flSide0, _frFwd0, _frSide0, _rlFwd0, _rlSide0, _rrFwd0, _rrSide0;
         private MapTerrain _terrain;
         private PythonScriptRunner _pythonScriptRunner;
+
+        private Quaternion initialLocalRotFL;
+        private Quaternion initialLocalRotFR;
+        private Quaternion initialLocalRotRL;
+        private Quaternion initialLocalRotRR;
         #endregion
 
         void Awake()
@@ -95,6 +100,14 @@ namespace Assets.Scripts.Robot.Cars
             Cameras.AddRange(GetComponentsInChildren<ICameraSensor>());
             _terrain = FindFirstObjectByType<MapTerrain>();
             _pythonScriptRunner = GetComponent<PythonScriptRunner>();
+
+            initialLocalRotFL = frontLeftMesh.localRotation;
+            initialLocalRotFR = frontRightMesh.localRotation;
+            initialLocalRotRL = rearLeftMesh.localRotation;
+            initialLocalRotRR = rearRightMesh.localRotation;
+
+            ApplyAntiRoll(frontLeftWheel, frontRightWheel);
+            ApplyAntiRoll(rearLeftWheel, rearRightWheel);
         }
 
         void FixedUpdate()
@@ -259,31 +272,23 @@ namespace Assets.Scripts.Robot.Cars
         }
         #endregion
 
-        void UpdateWheelMeshes()
+        private void UpdateWheelMeshes()
         {
-            UpdateSingleWheel(frontLeftWheel, frontLeftMesh);
-            UpdateSingleWheel(frontRightWheel, frontRightMesh);
-            UpdateSingleWheel(rearLeftWheel, rearLeftMesh);
-            UpdateSingleWheel(rearRightWheel, rearRightMesh);
+            UpdateSingleWheel(frontLeftWheel, frontLeftMesh, initialLocalRotFL);
+            UpdateSingleWheel(frontRightWheel, frontRightMesh, initialLocalRotFR);
+            UpdateSingleWheel(rearLeftWheel, rearLeftMesh, initialLocalRotRL);
+            UpdateSingleWheel(rearRightWheel, rearRightMesh, initialLocalRotRR);
         }
 
-        void UpdateSingleWheel(WheelCollider collider, Transform mesh)
+        private void UpdateSingleWheel(WheelCollider collider, Transform mesh, Quaternion initialLocal)
         {
-            if (mesh == null) return;
+            if (mesh == null || collider == null)
+                return;
 
-            // получаем точную мировую позицию и ориентацию колеса
-            collider.GetWorldPose(out Vector3 pos, out Quaternion quat);
+            collider.GetWorldPose(out Vector3 pos, out Quaternion rot);
 
-            mesh.SetPositionAndRotation(pos, quat);
-
-            // если это переднее колесо, добавляем поворот руля
-            if (collider == frontLeftWheel || collider == frontRightWheel)
-            {
-                var euler = mesh.localEulerAngles;
-                var steerAngle = collider.steerAngle;
-                euler.y = steerAngle;
-                mesh.localEulerAngles = euler;
-            }
+            mesh.position = pos;
+            mesh.rotation = rot * initialLocal;
         }
     }
 }

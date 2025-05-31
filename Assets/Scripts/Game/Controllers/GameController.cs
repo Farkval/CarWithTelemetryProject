@@ -95,7 +95,7 @@ namespace Assets.Scripts.Game.Controllers
         /* --------------------  Управление игроками  ------------------------ */
 
         /// <summary>Добавляет нового игрока-контейнер (GameObject+Player) и возвращает текущее количество игроков.</summary>
-        public int AddNewPlayer()
+        public virtual int AddNewPlayer()
         {
             var go = new GameObject($"Player_{_nextPlayerIndex}");
             var player = go.AddComponent<Player>();
