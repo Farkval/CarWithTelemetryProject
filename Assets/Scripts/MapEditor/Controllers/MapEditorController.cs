@@ -34,6 +34,9 @@ namespace Assets.Scripts.MapEditor.Controllers
         private Vector3 _beforePos, _beforeRot, _beforeScale;
         private float _currentScaleFactor = 1f;
 
+        private const float CELL_STEP = 0.05f;
+        private const float ROTATE_STEP = 2.5f;
+
         public UndoRedoController UndoRedoManager { get { return _undoRedo; } }
 
         private void Awake()
@@ -192,6 +195,9 @@ namespace Assets.Scripts.MapEditor.Controllers
                 {
                     float dx = Input.GetAxis("Mouse X");
                     tr.Rotate(Vector3.up, dx * 3f, Space.World);
+                    Vector3 e = tr.rotation.eulerAngles;
+                    e.y = Mathf.Round(e.y / ROTATE_STEP) * ROTATE_STEP;
+                    tr.rotation = Quaternion.Euler(e);
                     changed = true;
                 }
                 else if (Input.GetKey(KeyCode.S))                 // SCALE
@@ -203,8 +209,10 @@ namespace Assets.Scripts.MapEditor.Controllers
                 }
                 else if (Input.GetKey(KeyCode.H))
                 {
-                    float dy = Input.GetAxis("Mouse Y") * 0.05f;
-                    tr.position += Vector3.up * dy;
+                    float dyRaw = Input.GetAxis("Mouse Y") * CELL_STEP;
+                    float newYRaw = tr.position.y + dyRaw;
+                    float newY = Mathf.Round(newYRaw / CELL_STEP) * CELL_STEP;
+                    tr.position = new Vector3(tr.position.x, newY, tr.position.z);
                     changed = true;
                 }
                 else if (Input.GetKey(KeyCode.Delete))
@@ -222,6 +230,10 @@ namespace Assets.Scripts.MapEditor.Controllers
                         // «скольжение» по границе
                         p.x = Mathf.Clamp(p.x, -half, half);
                         p.z = Mathf.Clamp(p.z, -half, half);
+
+                        p.x = Mathf.Round(p.x / CELL_STEP) * CELL_STEP;
+                        p.z = Mathf.Round(p.z / CELL_STEP) * CELL_STEP;
+
                         p.y = tr.position.y;
                         tr.position = p;
                         changed = true;
@@ -294,13 +306,12 @@ namespace Assets.Scripts.MapEditor.Controllers
                     p = ray.GetPoint(dist);
                 }
 
-                float h = FindFirstObjectByType<MapTerrain>().MapHalfWorld;
+                var h = _terrain.MapHalfWorld;
                 p.x = Mathf.Clamp(p.x, -h, h);
                 p.z = Mathf.Clamp(p.z, -h, h);
 
-                const float STEP = .05f;                     // привязка
-                p.x = Mathf.Round(p.x / STEP) * STEP;
-                p.z = Mathf.Round(p.z / STEP) * STEP;
+                p.x = Mathf.Round(p.x / CELL_STEP) * CELL_STEP;
+                p.z = Mathf.Round(p.z / CELL_STEP) * CELL_STEP;
 
                 _previewInstance.transform.position =
                     new Vector3(p.x, _previewInstance.transform.position.y, p.z);
@@ -310,11 +321,10 @@ namespace Assets.Scripts.MapEditor.Controllers
             if (rotating)
             {
                 float rotDelta = Input.GetAxis("Mouse X") * 5f;
-                Quaternion before = _previewInstance.transform.rotation;
                 _previewInstance.transform.Rotate(Vector3.up, rotDelta, Space.World);
 
                 Vector3 e = _previewInstance.transform.eulerAngles;
-                e.y = Mathf.Round(e.y / 2.5f) * 2.5f;
+                e.y = Mathf.Round(e.y / ROTATE_STEP) * ROTATE_STEP;
                 _previewInstance.transform.eulerAngles = e;
             }
 
@@ -333,9 +343,11 @@ namespace Assets.Scripts.MapEditor.Controllers
 
             if (heighting)
             {
-                float dy = Input.GetAxis("Mouse Y") * 0.05f;
-                var pos = _previewInstance.transform.position;
-                _previewInstance.transform.position = pos + Vector3.up * dy;
+                float dyRaw = Input.GetAxis("Mouse Y") * CELL_STEP;
+                Vector3 pos = _previewInstance.transform.position;
+                float newYraw = pos.y + dyRaw;
+                float newY = Mathf.Round(newYraw / CELL_STEP) * CELL_STEP;
+                _previewInstance.transform.position = new Vector3(pos.x, newY, pos.z);
             }
         }
 

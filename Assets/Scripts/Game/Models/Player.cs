@@ -133,10 +133,13 @@ namespace Assets.Scripts.Game.Models
 
         public void LaunchScript(bool launch)
         {
-            if (_pythonRunner == null) return;
+            if (_pythonRunner == null) 
+                return;
 
-            if (launch) _pythonRunner.Launch();
-            else _pythonRunner.Stop();
+            if (launch) 
+                _pythonRunner.Launch();
+            else 
+                _pythonRunner.Stop();
         }
 
         /* =================================================================== */
@@ -151,7 +154,8 @@ namespace Assets.Scripts.Game.Models
         public void OnPlayerDeleted()
         {
             _spawnPoint?.ClearSpawn();
-            if (_carInstance != null) Destroy(_carInstance);
+            if (_carInstance != null) 
+                Destroy(_carInstance);
             GC.SuppressFinalize(this);
         }
     }

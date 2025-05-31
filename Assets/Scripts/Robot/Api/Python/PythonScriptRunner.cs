@@ -109,8 +109,7 @@ public class PythonScriptRunner : MonoBehaviour
     {
         _running = false;
         _updateFunc = null;
-        _robot.ManualControl = true;
-        Logger.Log("Python script stopped (manual control ON)");
+        Logger.Log("Python script stopped");
     }
 
     private void OnDestroy()

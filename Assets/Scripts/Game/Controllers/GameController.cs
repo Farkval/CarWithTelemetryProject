@@ -3,9 +3,11 @@ using Assets.Scripts.MapEditor.Consts;
 using Assets.Scripts.MapEditor.Controllers;
 using Assets.Scripts.MapEditor.Models;
 using Assets.Scripts.Utils;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Assets.Scripts.Game.Controllers
@@ -22,6 +24,10 @@ namespace Assets.Scripts.Game.Controllers
         private readonly List<GameObject> _cars = new();
 
         private int _nextPlayerIndex = 1;
+        private DateTime _gameStartedTime;
+        private TimeSpan _gameEndedTime;
+        public TimeSpan GameEllapsedTime => DateTime.UtcNow - _gameStartedTime;
+        public bool GameStarted { get; private set; }
 
         /* ----------------------------  PUBLIC API  ---------------------------- */
 
@@ -95,14 +101,14 @@ namespace Assets.Scripts.Game.Controllers
         /* --------------------  Управление игроками  ------------------------ */
 
         /// <summary>Добавляет нового игрока-контейнер (GameObject+Player) и возвращает текущее количество игроков.</summary>
-        public virtual int AddNewPlayer()
+        public string AddNewPlayer()
         {
             var go = new GameObject($"Player_{_nextPlayerIndex}");
             var player = go.AddComponent<Player>();
             player.Initialize(_nextPlayerIndex++);
 
             _players.Add(player);
-            return _players.Count;
+            return player.Name;
         }
 
         public int DeletePlayer(int playerIndex)
@@ -136,12 +142,27 @@ namespace Assets.Scripts.Game.Controllers
 
         /* -----------------------  Скрипты Python  -------------------------- */
 
-        private bool _scriptsLaunched;
-
-        public void TogglePlayersScripts()
+        public void StartGame()
         {
-            _scriptsLaunched = !_scriptsLaunched;
-            foreach (var p in _players) p.LaunchScript(_scriptsLaunched);
+            foreach (var p in _players)
+                p.LaunchScript(true);
+
+            _gameStartedTime = DateTime.UtcNow;
+            GameStarted = true;
+        }
+
+        public void StopGame()
+        {
+            foreach (var p in _players)
+                p.LaunchScript(false);
+
+            _gameEndedTime = DateTime.UtcNow - _gameStartedTime;
+            GameStarted = false;
+        }
+
+        public bool AnyPlayerSpawned()
+        {
+            return _players.Any(p => p.Spawned);
         }
     }
 }

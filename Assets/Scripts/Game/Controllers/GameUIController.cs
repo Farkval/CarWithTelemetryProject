@@ -1,5 +1,4 @@
-﻿using Assets.Scripts.Game.Controllers;
-using Assets.Scripts.Game.Models;
+﻿using Assets.Scripts.Game.Models;
 using Assets.Scripts.MapEditor.Consts;
 using Assets.Scripts.Utils;
 using System.Collections.Generic;
@@ -25,6 +24,7 @@ namespace Assets.Scripts.Game.Controllers
 
         [Header("Session")]
         [SerializeField] private Button startButton;
+        [SerializeField] private Button stopButton;
 
         [Header("Players")]
         [SerializeField] private TMP_Dropdown selectPlayerDropdown;
@@ -45,6 +45,7 @@ namespace Assets.Scripts.Game.Controllers
 
         [Header("Console")]
         [SerializeField] private GameObject consolePanel;
+        [SerializeField] private TMP_Text timeText;
 
         [Header("System")]
         [SerializeField] private Button exitButton;
@@ -87,6 +88,16 @@ namespace Assets.Scripts.Game.Controllers
 
             // Показ/скрытие панели настроек
             ShowUI(settingsToggle.isOn);
+
+            timeText.gameObject.SetActive(false);
+        }
+
+        private void Update()
+        {
+            if (_game.GameStarted)
+            {
+                timeText.text = _game.GameEllapsedTime.ToString();
+            }
         }
 
         private void CacheUIElements()
@@ -128,7 +139,8 @@ namespace Assets.Scripts.Game.Controllers
             /* Console / System */
             consoleEnabledToggle.onValueChanged.AddListener(consolePanel.SetActive);
             consolePanel.SetActive(consoleEnabledToggle.isOn);
-            startButton.onClick.AddListener(_game.TogglePlayersScripts);
+            startButton.onClick.AddListener(OnStart);
+            stopButton.onClick.AddListener(OnStop);
             exitButton.onClick.AddListener(() =>
                 SceneManager.LoadScene(SceneNameConst.MAIN_MENU_SCENE));
         }
@@ -141,15 +153,15 @@ namespace Assets.Scripts.Game.Controllers
         {
             if (!_game.CanAddNewPlayer()) return;
 
-            int count = _game.AddNewPlayer();
+            var name = _game.AddNewPlayer();
 
             addPlayerButton.interactable = _game.CanAddNewPlayer();
             deletePlayerButton.interactable = true;
 
-            RefreshPlayersDropdown();
+            selectPlayerDropdown.options.Add(new TMP_Dropdown.OptionData(name));
             // индекс первого игрока = 1 (0 - placeholder)
-            selectPlayerDropdown.SetValueWithoutNotify(count);
-            OnPlayerChanged(count);
+            selectPlayerDropdown.SetValueWithoutNotify(selectPlayerDropdown.options.Count - 1);
+            OnPlayerChanged(0);
         }
 
         private void DeletePlayer()
@@ -161,22 +173,14 @@ namespace Assets.Scripts.Game.Controllers
 
             deletePlayerButton.interactable = count > 0;
             addPlayerButton.interactable = _game.CanAddNewPlayer();
+            startButton.interactable = _game.AnyPlayerSpawned();
 
-            RefreshPlayersDropdown();
+            selectPlayerDropdown.options.RemoveAt(CurrentPlayerIndex + 1);
             selectPlayerDropdown.SetValueWithoutNotify(0);
 
             // Обновить точки спавна (освободились)
             UpdateSpawnPointsDropdown();
             OnPlayerChanged(0);
-        }
-
-        private void RefreshPlayersDropdown()
-        {
-            var options = new List<string> { "Выберите игрока" };
-            options.AddRange(_game.Players.Select(p => p.Name));
-
-            selectPlayerDropdown.ClearOptions();
-            selectPlayerDropdown.AddOptions(options);
         }
 
         private void OnPlayerChanged(int _)
@@ -191,6 +195,10 @@ namespace Assets.Scripts.Game.Controllers
             {
                 selectSpawnPointsDropdown.SetValueWithoutNotify(0);
                 selectCarDropdown.SetValueWithoutNotify(0);
+                loadRobotButton.interactable = false;
+                carManualControlToggle.interactable = false;
+                cameraVisualizersEnabledToggle.interactable = false;
+                lidarVisualizersEnabledToggle.interactable= false;
             }
             else
             {
@@ -261,6 +269,8 @@ namespace Assets.Scripts.Game.Controllers
 
             UpdateSpawnPointsDropdown();
             OnPlayerChanged(selectPlayerDropdown.value);
+
+            startButton.interactable = true;
         }
 
         /* =================================================================== */
@@ -275,7 +285,19 @@ namespace Assets.Scripts.Game.Controllers
             selectMapInput.text = ok ? mapName :
                 selectMapInput.text is "Выберите карту" ? "Выберите карту" : selectMapInput.text;
 
-            if (!ok) return;
+            if (!ok) 
+                return;
+
+            int currentPlayersCount = selectPlayerDropdown.options.Count - 1;
+            for (int i = currentPlayersCount; i > 0; i--)
+            {
+                selectPlayerDropdown.options.RemoveAt(i);
+                _game.DeletePlayer(i);
+            }
+            startButton.interactable = false;
+            deletePlayerButton.interactable = false;
+            if (currentPlayersCount != 0)
+                selectPlayerDropdown.value = 0;
 
             UpdateSpawnPointsDropdown();
             InitializeCars(_game.Cars);
@@ -345,6 +367,45 @@ namespace Assets.Scripts.Game.Controllers
         {
             foreach (var go in _uiElements)
                 go.SetActive(show);
+        }
+
+
+        private (bool f1, bool f2) _preStartUIState;
+
+        private void OnStart()
+        {
+            _game.StartGame();
+            startButton.interactable = false;
+            stopButton.interactable = true;
+
+            _preStartUIState = (addPlayerButton.interactable, deletePlayerButton.interactable);
+            addPlayerButton.interactable = false;
+            deletePlayerButton.interactable = false;
+            loadRobotButton.interactable = false;
+            selectSpawnPointsDropdown.interactable = false;
+            selectCarDropdown.interactable = false;
+            selectScriptInput.interactable = false;
+            carManualControlToggle.interactable = false;
+            carManualControlToggle.SetIsOnWithoutNotify(false);
+            timeText.gameObject.SetActive(true);
+            selectMapInput.interactable = false;
+        }
+
+        private void OnStop()
+        {
+            _game.StopGame();
+            startButton.interactable = true;
+            stopButton.interactable = false;
+
+            addPlayerButton.interactable = _preStartUIState.f1;
+            deletePlayerButton.interactable = _preStartUIState.f2;
+            loadRobotButton.interactable = CurrentCarIndex != 1 && CurrentPlayerIndex != -1 && CurrentSpawnPointIndex != 1;
+            selectSpawnPointsDropdown.interactable = CurrentPlayerIndex != -1;
+            selectCarDropdown.interactable = CurrentPlayerIndex != -1;
+            selectScriptInput.interactable = CurrentPlayerIndex != -1;
+            carManualControlToggle.interactable = CurrentPlayerIndex != -1;
+            timeText.gameObject.SetActive(false);
+            selectMapInput.interactable = true;
         }
     }
 }

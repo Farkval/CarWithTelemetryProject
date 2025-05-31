@@ -1,6 +1,4 @@
-﻿using Assets.Scripts.MapEditor.Consts;
-using UnityEngine;
-using UnityEngine.SceneManagement;
+﻿using UnityEngine;
 
 namespace Assets.Scripts.Game.Triggers
 {
@@ -16,7 +14,7 @@ namespace Assets.Scripts.Game.Triggers
         {
             if (other.CompareTag("Player"))
             {
-                SceneManager.LoadScene(SceneNameConst.MAIN_MENU_SCENE);
+
             }
         }
     }
