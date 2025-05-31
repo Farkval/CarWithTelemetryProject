@@ -35,14 +35,16 @@ namespace Assets.Scripts.Robot.Sensors.Cameras
         void Awake()
         {
             _cam = GetComponent<Camera>();
-            isEnabled = _cam.enabled;
+            _cam.enabled = isEnabled;
             ApplySettings();
         }
 
 #if UNITY_EDITOR
         void OnValidate()
         {
-            if (_cam == null) _cam = GetComponent<Camera>();
+            if (_cam == null) 
+                _cam = GetComponent<Camera>();
+            _cam.enabled = isEnabled;
             ApplySettings();
         }
 #endif

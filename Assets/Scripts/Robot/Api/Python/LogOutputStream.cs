@@ -1,8 +1,9 @@
-﻿using System;
+﻿using Assets.Scripts.Utils;
+using System;
 using System.IO;
 using System.Text;
 
-namespace Assets.Scripts.Robot.Logger
+namespace Assets.Scripts.Robot.Python
 {
     public class LogOutputStream : Stream
     {
@@ -45,7 +46,7 @@ namespace Assets.Scripts.Robot.Logger
                 // логируем всё до последнего '\n'
                 var parts = text.Split(new[] { '\n' }, StringSplitOptions.None);
                 for (int i = 0; i < parts.Length - 1; i++)
-                    Logger.Instance.Log(parts[i]);
+                    Logger.Log(parts[i]);
                 // сбрасываем буфер, оставив «хвост» после последнего '\n'
                 var remainder = parts[parts.Length - 1];
                 _buffer.SetLength(0);

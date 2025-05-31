@@ -43,11 +43,21 @@
             if (multiSelect)
                 ofn.flags |= OpenFileName.OFN_ALLOWMULTISELECT;
 
-            bool ok = NativeFileDialog.GetOpenFileName(ofn);
-            if (!ok) 
-                return null;
+            string originalDir = Directory.GetCurrentDirectory();
 
-            return ParseFileNames(ofn.file);
+            try
+            {
+                bool ok = NativeFileDialog.GetOpenFileName(ofn);
+
+                if (!ok)
+                    return null;
+
+                return ParseFileNames(ofn.file);
+            }
+            finally
+            {
+                Directory.SetCurrentDirectory(originalDir);
+            }
         }
 
         /// <summary>
@@ -70,8 +80,17 @@
             ofn.flags = OpenFileName.OFN_EXPLORER
                              | OpenFileName.OFN_OVERWRITEPROMPT;
 
-            bool ok = NativeFileDialog.GetSaveFileName(ofn);
-            return ok ? ofn.file : null;
+            string originalDir = Directory.GetCurrentDirectory();
+
+            try
+            {
+                bool ok = NativeFileDialog.GetSaveFileName(ofn);
+                return ok ? ofn.file : null;
+            }
+            finally
+            {
+                Directory.SetCurrentDirectory(originalDir);
+            }
         }
 
         // ======== вспомогательные методы ========

@@ -1056,7 +1056,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rotateSpeed: 3
-  panSpeed: 0.3
+  panSpeed: 3
   zoomSpeed: 500
   minDist: 5
   maxDist: 400
@@ -1501,6 +1501,7 @@ Transform:
   - {fileID: 1839505510}
   - {fileID: 1168501655}
   - {fileID: 2145482896}
+  - {fileID: 1951856349}
   m_Father: {fileID: 61978367}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &331820261
@@ -1907,6 +1908,9 @@ MonoBehaviour:
   - name: "\u041A\u0430\u043C\u043D\u0438"
     elements:
     - {fileID: 11400000, guid: cefc51e20b774e348adc41c31ca3f766, type: 2}
+  - name: "\u041A\u0443\u0431\u044B"
+    elements:
+    - {fileID: 11400000, guid: 3c724222444e8fc49a5c6827cf23a2d3, type: 2}
 --- !u!1 &377244322
 GameObject:
   m_ObjectHideFlags: 0
@@ -7599,6 +7603,51 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1912275207}
   m_CullTransparentMesh: 1
+--- !u!1 &1951856348
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1951856349}
+  - component: {fileID: 1951856350}
+  m_Layer: 0
+  m_Name: Logger
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1951856349
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1951856348}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 318597350}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1951856350
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1951856348}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 641fcb91ca0330749833fd99a39bd8ce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxLogs: 1000
 --- !u!1 &1976622514
 GameObject:
   m_ObjectHideFlags: 0

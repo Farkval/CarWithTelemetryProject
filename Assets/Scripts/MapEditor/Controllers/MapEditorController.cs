@@ -1,8 +1,6 @@
 ﻿using Assets.Scripts.MapEditor.Actions;
 using Assets.Scripts.MapEditor.Consts;
 using Assets.Scripts.MapEditor.Models;
-using Assets.Scripts.MapEditor.Models.Enums;
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,16 +23,16 @@ namespace Assets.Scripts.MapEditor.Controllers
         private ElementData _activeElement;
         private GameObject _previewInstance;
 
-        private readonly UndoRedoController _undoRedo = new UndoRedoController(100);
-        private readonly List<PlacedObject> _placedObjects = new();
-        private Vector3 _origPreviewScale = Vector3.one;
-        private float _currentScaleFactor = 1f;
         private readonly Dictionary<Renderer, Color> _original = new();
-        private PlacedObject _dragObj;           // объект, который сейчас тянут
-        private Coroutine _dragRoutine;       // сама корутина-перетаскивания
-        private Vector3 _beforePos, _beforeRot, _beforeScale;
+        private readonly UndoRedoController _undoRedo = new UndoRedoController(100);
+        private List<PlacedObject> _placedObjects = new();
         private ElementPaletteUIController _elementPaletteUIController;
         private MapTerrain _terrain;
+        private PlacedObject _dragObj;           // объект, который сейчас тянут
+        private Coroutine _dragRoutine;       // сама корутина-перетаскивания
+        private Vector3 _origPreviewScale = Vector3.one;
+        private Vector3 _beforePos, _beforeRot, _beforeScale;
+        private float _currentScaleFactor = 1f;
 
         public UndoRedoController UndoRedoManager { get { return _undoRedo; } }
 
@@ -50,30 +48,6 @@ namespace Assets.Scripts.MapEditor.Controllers
             HandleSelection();
             HandlePreview();
             HandlePlacement();
-        }
-
-        private void HandleHotKey()
-        {
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                _elementPaletteUIController.ClearSelection();
-            }
-            if (Input.GetKeyDown(KeyCode.Z) && Input.GetKey(KeyCode.LeftControl))
-            {
-                var res = _undoRedo.Undo();
-                if (res is PlacedObject obj)
-                {
-                    _placedObjects.Remove(obj);
-                }
-            }
-            if (Input.GetKeyDown(KeyCode.Y) && Input.GetKey(KeyCode.LeftControl))
-            {
-                var res = _undoRedo.Redo();
-                if (res is PlacedObject obj)
-                {
-                    _placedObjects.Add(obj);
-                }
-            }
         }
 
         public void UndoCommand()
@@ -104,38 +78,8 @@ namespace Assets.Scripts.MapEditor.Controllers
         {
             mapSerializer.Load(data =>
             {
-                var mm = FindFirstObjectByType<MapController>();
-                var index = Enum.GetValues(typeof(MapSize));
-                mm.SetMap(data.mapSize);
-                mm.SetEnvironment(data.timeOfDay);
-
-                var terr = FindFirstObjectByType<MapTerrain>();
-
-                if (data.heights != null && data.heightRes > 0)
-                    terr.ImportHeights(data.heightRes, data.heights);
-                else terr.Init((int)data.mapSize);
-
-                // покрытие
-                if (data.surfaces != null && data.surfaceRes > 0)
-                    terr.ImportSurfaces(data.surfaceRes, data.surfaces);
-
-                foreach (var po in _placedObjects)
-                    Destroy(po.instance);
-                _placedObjects.Clear();
-
-                foreach (var inst in data.instances)
-                {
-                    var ed = Resources.Load<ElementData>(inst.elementPath);
-                    if (!ed)
-                    {
-                        continue;
-                    }
-
-                    GameObject obj = Instantiate(ed.prefab);
-                    obj.transform.SetPositionAndRotation(inst.position, Quaternion.Euler(inst.rotation));
-                    obj.transform.localScale = inst.localScale;
-                    _placedObjects.Add(new PlacedObject(obj, ed));
-                }
+                _placedObjects = MapLoader.Load(data, _terrain, FindFirstObjectByType<MapController>(), _placedObjects);
+                _undoRedo.Clear();
             });
         }
 
@@ -175,7 +119,7 @@ namespace Assets.Scripts.MapEditor.Controllers
             }
         }
 
-        void HandleSelection()
+        private void HandleSelection()
         {
             /* 1. Если уже тащим – ничего не делаем */
             if (_dragRoutine != null || _activeElement != null)
@@ -202,7 +146,31 @@ namespace Assets.Scripts.MapEditor.Controllers
             }
         }
 
-        IEnumerator DragObjectLoop(PlacedObject po)
+        private void HandleHotKey()
+        {
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                _elementPaletteUIController.ClearSelection();
+            }
+            if (Input.GetKeyDown(KeyCode.Z) && Input.GetKey(KeyCode.LeftControl))
+            {
+                var res = _undoRedo.Undo();
+                if (res is PlacedObject obj)
+                {
+                    _placedObjects.Remove(obj);
+                }
+            }
+            if (Input.GetKeyDown(KeyCode.Y) && Input.GetKey(KeyCode.LeftControl))
+            {
+                var res = _undoRedo.Redo();
+                if (res is PlacedObject obj)
+                {
+                    _placedObjects.Add(obj);
+                }
+            }
+        }
+
+        private IEnumerator DragObjectLoop(PlacedObject po)
         {
             Transform tr = po.instance.transform;
             Highlight(po, true);             // вкл. подсветку
@@ -284,7 +252,7 @@ namespace Assets.Scripts.MapEditor.Controllers
             _dragObj = null;
         }
 
-        void Highlight(PlacedObject po, bool state)
+        private void Highlight(PlacedObject po, bool state)
         {
             var r = po.instance.GetComponentInChildren<Renderer>();
             if (!r)

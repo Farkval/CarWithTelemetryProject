@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 5145534373150472865}
   - component: {fileID: 5338533491213228690}
   - component: {fileID: 932132906976857141}
-  - component: {fileID: 3637072186569982319}
+  - component: {fileID: 1101044239698838422}
   m_Layer: 6
   m_Name: Camera
   m_TagString: Untagged
@@ -129,7 +129,7 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
---- !u!114 &3637072186569982319
+--- !u!114 &1101044239698838422
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -213,7 +213,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 2d4c16654da70b146bac5179b18cacd7, type: 2}
+  - {fileID: 2100000, guid: d33c818d06e78e642a93926a5c94c679, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -756,7 +756,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 2d4c16654da70b146bac5179b18cacd7, type: 2}
+  - {fileID: 2100000, guid: d33c818d06e78e642a93926a5c94c679, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1099,7 +1099,7 @@ GameObject:
   - component: {fileID: 5029888652568703608}
   - component: {fileID: 7729966620113162297}
   m_Layer: 6
-  m_Name: Car
+  m_Name: YellowSedan
   m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

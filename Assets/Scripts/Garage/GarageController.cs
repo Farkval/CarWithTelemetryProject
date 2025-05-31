@@ -26,7 +26,6 @@ namespace Assets.Scripts.Garage
         private List<Component> _currentComponents;
         private List<LidarVisualizer> _currentLidarVisualizers;
         private List<CameraVisualizer> _currentCameraVisualizers;
-        private List<Camera> _carCameras;
 
         void Start()
         {
@@ -45,7 +44,6 @@ namespace Assets.Scripts.Garage
                 _currentInstance = null;
                 _currentLidarVisualizers = null;
                 _currentCameraVisualizers = null;
-                _carCameras = null;
             }
 
             _currentPrefab = prefab;
@@ -57,8 +55,6 @@ namespace Assets.Scripts.Garage
                 _currentInstance.GetComponentsInChildren<LidarVisualizer>());
             _currentCameraVisualizers = new List<CameraVisualizer>(
                 _currentInstance.GetComponentsInChildren<CameraVisualizer>());
-            _carCameras = new List<Camera>(
-                _currentInstance.GetComponentsInChildren<Camera>());
 
             UpdateLidarVisualizersEnabled(lidarVizalizerToggle.isOn);
             UpdateCameraVisualizersEnabled(cameraVizalizerToggle.isOn);
@@ -153,7 +149,8 @@ namespace Assets.Scripts.Garage
             var list = new List<Component>();
 
             var carCtrl = car.GetComponent<FourWheelsCarController>();
-            if (carCtrl != null) list.Add(carCtrl);
+            if (carCtrl != null) 
+                list.Add(carCtrl);
 
             list.AddRange(car.GetComponentsInChildren<FlashLidar>());
             list.AddRange(car.GetComponentsInChildren<MechanicalLidar>());

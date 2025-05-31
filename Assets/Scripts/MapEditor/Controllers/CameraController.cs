@@ -26,11 +26,35 @@ namespace Assets.Scripts.MapEditor.Controllers
             Apply();
         }
 
+        /// <summary>
+        /// Устанавливает камеру в заданную позицию и ориентацию, пересчитывая параметры поворота и дистанции.
+        /// </summary>
+        public void SetPositionAndRotation(Vector3 position, Quaternion rotation)
+        {
+            transform.position = position;
+            transform.rotation = rotation;
+
+            // Пересчитываем угол поворота в pitch/yaw
+            Vector3 euler = rotation.eulerAngles;
+            pitch = euler.x;
+            yaw = euler.y;
+
+            // Вычисляем дистанцию
+            Vector3 offset = rotation * new Vector3(0, 0, -1);
+            Ray ray = new Ray(position, offset);
+            // pivot будет на расстоянии "distance" от позиции камеры вдоль forward
+            pivot = position - offset * distance;
+
+            // Пересчитываем distance по реальному положению:
+            distance = Vector3.Distance(position, pivot);
+            distance = Mathf.Clamp(distance, minDist, maxDist);
+        }
+
         public void SetInvertX(bool v) => invertX = v;
 
         public void SetInvertY(bool v) => invertY = v;
 
-        void Update()
+        private void Update()
         {
             var m = Mouse.current;
             if (m.rightButton.isPressed)
@@ -55,7 +79,7 @@ namespace Assets.Scripts.MapEditor.Controllers
             Apply();
         }
 
-        void Apply()
+        private void Apply()
         {
             var rot = Quaternion.Euler(pitch, yaw, 0);
             transform.position = pivot + rot * new Vector3(0, 0, -distance);

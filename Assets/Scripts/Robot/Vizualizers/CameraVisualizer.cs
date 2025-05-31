@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Assets.Scripts.Robot.Vizualizers
@@ -10,9 +11,9 @@ namespace Assets.Scripts.Robot.Vizualizers
         [SerializeField] GameObject rayPrefab;     // LidarRay или аналогичный префаб с LineRenderer
         [SerializeField] float rayDuration = 0.1f; // Необязательно: можно оставить 0, если хотим непрерывную отрисовку
 
-        Camera _cam;
-        List<LineRenderer> _pool = new List<LineRenderer>(4);
-        float _lastDrawTime;
+        private Camera _cam;
+        private readonly List<LineRenderer> _pool = new List<LineRenderer>(4);
+        private float _lastDrawTime;
 
         void Awake()
         {
@@ -30,7 +31,7 @@ namespace Assets.Scripts.Robot.Vizualizers
 
         void LateUpdate()
         {
-            if (!enabled) 
+            if (!_cam.enabled && enabled) 
                 return;
 
             DrawFrustumRays();
@@ -51,7 +52,7 @@ namespace Assets.Scripts.Robot.Vizualizers
 
         void DrawFrustumRays()
         {
-            if (!enabled)
+            if (!_cam.enabled && enabled)
                 return;
 
             // вычисляем 4 угла фрустума на дальней плоскости

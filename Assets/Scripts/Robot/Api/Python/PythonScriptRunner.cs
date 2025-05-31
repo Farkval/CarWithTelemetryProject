@@ -1,18 +1,18 @@
-﻿using System;
-using System.IO;
+﻿using Assets.Scripts.Robot.Api.Interfaces;
+using Assets.Scripts.Robot.Python;
 using IronPython.Hosting;
 using Microsoft.Scripting.Hosting;
-using UnityEngine;
-using Assets.Scripts.Robot.Api.Interfaces;
-using Assets.Scripts.Robot.Logger;
+using System;
+using System.IO;
 using System.Text;
+using UnityEngine;
+using Logger = Assets.Scripts.Utils.Logger;
 
 [RequireComponent(typeof(MonoBehaviour))]
 public class PythonScriptRunner : MonoBehaviour
 {
-    [Header("Script file (relative to Assets/UserScripts)")]
-    [Tooltip("Напр.:  my_bot.py")]
-    public string scriptFile = "my_bot.py";
+    [Tooltip("Путь к исполняемому файлу")]
+    public string scriptFile = @"C:\Users\Student\Desktop\Unity projects\CarWithTelemetryProject\Assets\UserScripts\robot.py";
 
     [Tooltip("Запустить автоматически при старте сцены")]
     public bool autoRun = true;
@@ -23,12 +23,12 @@ public class PythonScriptRunner : MonoBehaviour
     private dynamic _updateFunc;
     private bool _running;
 
-    private void Awake()
+    public void Initizalize()
     {
         _robot = GetComponent<IRobotAPI>();
         if (_robot == null)
         {
-            Debug.LogError("PythonScriptRunner: IRobotAPI component not found");
+            Logger.Error("PythonScriptRunner: IRobotAPI component not found");
             enabled = false;
             return;
         }
@@ -40,11 +40,8 @@ public class PythonScriptRunner : MonoBehaviour
         _engine.Runtime.IO.SetErrorOutput(stream, Encoding.UTF8);
 
         var paths = _engine.GetSearchPaths();
-        string userScriptsPath = Path.Combine(Application.dataPath, "UserScripts");
-        paths.Add(userScriptsPath);
-        // Добавим все поддиректории для удобства
-        foreach (var dir in Directory.GetDirectories(userScriptsPath))
-            paths.Add(dir);
+        if (!string.IsNullOrEmpty(scriptFile))
+            paths.Add(Path.GetDirectoryName(scriptFile));
         _engine.SetSearchPaths(paths);
 
         _scope = _engine.CreateScope();
@@ -55,17 +52,12 @@ public class PythonScriptRunner : MonoBehaviour
 
     private void Start()
     {
-        if (autoRun) Launch();
+        if (autoRun) 
+            Launch();
     }
 
     private void Update()
     {
-        // горячая клавиша [I] – старт/стоп
-        if (Input.GetKeyDown(KeyCode.I))
-        {
-            if (_running) Stop(); else Launch();
-        }
-
         if (_running && _updateFunc != null)
         {
             try
@@ -74,18 +66,17 @@ public class PythonScriptRunner : MonoBehaviour
             }
             catch (Exception ex)
             {
-                Debug.LogError($"Python runtime error:\n{ex}");
+                Logger.Error($"Python runtime error: {ex}");
                 Stop();
             }
         }
     }
 
-    private void Launch()
+    public void Launch()
     {
-        string full = Path.Combine(Application.dataPath, "UserScripts", scriptFile);
-        if (!File.Exists(full))
+        if (!File.Exists(scriptFile))
         {
-            Debug.LogError($"Python script '{full}' not found");
+            Logger.Error($"Python script '{scriptFile}' not found");
             return;
         }
 
@@ -95,31 +86,31 @@ public class PythonScriptRunner : MonoBehaviour
             string moduleName = Path.GetFileNameWithoutExtension(scriptFile);
             _engine.Execute($"import sys; sys.modules.pop('{moduleName}', None)", _scope);
 
-            var src = _engine.CreateScriptSourceFromFile(full);
+            var src = _engine.CreateScriptSourceFromFile(scriptFile);
             src.Execute(_scope);
 
             if (!_scope.TryGetVariable("update", out _updateFunc))
             {
-                Debug.LogWarning($"'{scriptFile}' не содержит функцию update(robot, dt)");
+                Logger.Warning($"'{scriptFile}' не содержит функцию update(robot, dt)");
                 return;
             }
 
             _running = true;
             _robot.ManualControl = false;
-            Debug.Log($"Python script '{scriptFile}' launched");
+            Logger.Log($"Python script '{scriptFile}' launched");
         }
         catch (Exception ex)
         {
-            Debug.LogError($"Python launch error:\n{ex}");
+            Logger.Error($"Python launch error: {ex}");
         }
     }
 
-    private void Stop()
+    public void Stop()
     {
         _running = false;
         _updateFunc = null;
         _robot.ManualControl = true;
-        Debug.Log("Python script stopped (manual control ON)");
+        Logger.Log("Python script stopped (manual control ON)");
     }
 
     private void OnDestroy()
