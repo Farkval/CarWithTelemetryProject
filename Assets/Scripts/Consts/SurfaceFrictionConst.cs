@@ -13,6 +13,7 @@ namespace Assets.Scripts.Consts
                 { SurfaceType.Gravel,  (0.80f, 0.80f) },
                 { SurfaceType.Ice,     (0.00f, 0.00f) },
                 { SurfaceType.Water,   (0.40f, 0.50f) },
+                { SurfaceType.Asphalt, (1.50f, 1.50f) }
             };
     }
 }

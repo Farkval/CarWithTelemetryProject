@@ -73,8 +73,6 @@ namespace Assets.Scripts.Robot.Sensors.Cameras
             }
             _timeSinceLastScan = 0f;
 
-            Debug.Log(string.Join("; ", _detected.Select(o => $"{o.Name}")));
-
             // Обновляем кэш при необходимости
             if (refreshElementsEvery > 0f)
             {

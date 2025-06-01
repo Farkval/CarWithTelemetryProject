@@ -6,5 +6,6 @@
         Medium = 100, 
         Large = 150,
         ExtraLarge = 200,
+        ExtraExtraLarge = 500
     }
 }

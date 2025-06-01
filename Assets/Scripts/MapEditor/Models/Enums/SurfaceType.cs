@@ -7,6 +7,7 @@
         Mud = 1,
         Gravel = 2,
         Water = 3,
-        Ice = 4
+        Ice = 4,
+        Asphalt = 5,
     }
 }
