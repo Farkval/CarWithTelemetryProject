@@ -23,8 +23,9 @@ namespace Assets.Scripts.Tools
                 return;
             }
 
+
             var bytes = tex.EncodeToPNG();
-            var path = "Assets/Resources/Vehicles/Icons/" + go.name + ".png";
+            var path = "Assets/Resources/Elements/Icons/" + go.name + ".png";
             System.IO.File.WriteAllBytes(path, bytes);
             AssetDatabase.Refresh();
             Debug.Log("Saved preview to " + path);

@@ -124,7 +124,7 @@ MonoBehaviour:
   verticalResolution: 16
   layerMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 448
   scanFrequency: 5
   isEnabled: 1
 --- !u!114 &2233854218282337355
@@ -226,7 +226,7 @@ MonoBehaviour:
   verticalResolution: 16
   layerMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 448
   scanFrequency: 5
   isEnabled: 1
 --- !u!114 &2424411364360633713
@@ -295,7 +295,7 @@ MonoBehaviour:
   verticalResolution: 16
   layerMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 448
   scanFrequency: 5
   isEnabled: 1
 --- !u!114 &4016138864448166839
@@ -364,7 +364,7 @@ MonoBehaviour:
   verticalResolution: 16
   layerMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 448
   scanFrequency: 5
   isEnabled: 1
 --- !u!114 &2867950757128897756
@@ -631,7 +631,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e22aedcd6e7cfc94ab0f68110bc89311, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  target: {fileID: 8070956472779456205}
+  target: {fileID: 7196871355329218661}
   distance: 5
   height: 1.5
   xSpeed: 70
@@ -690,7 +690,7 @@ MonoBehaviour:
   verticalResolution: 16
   layerMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 448
   scanFrequency: 5
   isEnabled: 1
 --- !u!114 &8063514514107061277
@@ -759,7 +759,7 @@ MonoBehaviour:
   verticalResolution: 16
   layerMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 448
   scanFrequency: 5
   isEnabled: 1
 --- !u!114 &3375498813531850566

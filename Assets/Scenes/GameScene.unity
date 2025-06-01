@@ -2592,9 +2592,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 98a5434f4a990404ca5e278702954f68, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotateSpeed: 6
-  panSpeed: 3.5
-  zoomSpeed: 60
+  rotateSpeed: 2.5
+  panSpeed: 2.5
+  zoomSpeed: 20
   minDist: 5
   maxDist: 400
   invertX: 0

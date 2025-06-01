@@ -74,9 +74,13 @@ namespace Assets.Scripts.Garage
 
         private void ChangeCarLogicEnabled(bool enabled)
         {
-            var carCtrl = _currentInstance.GetComponent<FourWheelsCarController>();
-            if (carCtrl != null)
-                carCtrl.enabled = false;
+            var carCtrl1 = _currentInstance.GetComponent<FourWheelsCarController>();
+            if (carCtrl1 != null)
+                carCtrl1.enabled = enabled;
+
+            var carCtrl2 = _currentInstance.GetComponent<YandexRoverController>();
+            if (carCtrl2 != null)
+                carCtrl2.enabled = enabled;
         }
 
         public void OnSavePressed()
@@ -148,9 +152,13 @@ namespace Assets.Scripts.Garage
         {
             var list = new List<Component>();
 
-            var carCtrl = car.GetComponent<FourWheelsCarController>();
-            if (carCtrl != null) 
-                list.Add(carCtrl);
+            var carCtrl1 = car.GetComponent<FourWheelsCarController>();
+            if (carCtrl1 != null) 
+                list.Add(carCtrl1);
+
+            var carCtrl2 = car.GetComponent<YandexRoverController>();
+            if (carCtrl2 != null) 
+                list.Add(carCtrl2);
 
             list.AddRange(car.GetComponentsInChildren<FlashLidar>());
             list.AddRange(car.GetComponentsInChildren<MechanicalLidar>());

@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0535613faf27f2e4c9cb64008aa70844, type: 3}
+  m_Name: aruco_3
+  m_EditorClassIdentifier: 
+  displayName: aruco_3
+  icon: {fileID: 21300000, guid: b3216e85e72f21343a7790df19394fda, type: 3}
+  prefab: {fileID: 9100666944133157932, guid: 3209886e7cc176049a078c51efa3a22b, type: 3}
+  minScale: 0.5
+  maxScale: 2
+  customProperties: []

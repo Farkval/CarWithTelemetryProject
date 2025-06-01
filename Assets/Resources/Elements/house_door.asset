@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0535613faf27f2e4c9cb64008aa70844, type: 3}
+  m_Name: house_door
+  m_EditorClassIdentifier: 
+  displayName: "\u0414\u0432\u0435\u0440\u044C"
+  icon: {fileID: 21300000, guid: 2d6cdad57958d344b9c4733ce2e65d73, type: 3}
+  prefab: {fileID: 2753898390096926587, guid: 028c3cde1e2e59747b0667ed1f0a1393, type: 3}
+  minScale: 0.5
+  maxScale: 2
+  customProperties: []

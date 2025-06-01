@@ -15,6 +15,6 @@ MonoBehaviour:
   displayName: "\u0424\u0438\u043D\u0438\u0448"
   icon: {fileID: 21300000, guid: b6f55df1f80120d49a532744d4aab11a, type: 3}
   prefab: {fileID: 2514259659839812926, guid: 2987373a102f9aa4ab1311ffb8a8de07, type: 3}
-  minScale: 0.5
-  maxScale: 2
+  minScale: 1
+  maxScale: 1
   customProperties: []

@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using Assets.Scripts.MapEditor.Models;
 using Assets.Scripts.MapEditor.Controllers;
 using Assets.Scripts.Consts;
+using TMPro;
 
 public class ElementPaletteUIController : MonoBehaviour
 {
@@ -92,6 +93,11 @@ public class ElementPaletteUIController : MonoBehaviour
                 if (arFitter != null && img.sprite != null)
                     arFitter.aspectRatio =
                         (float)img.sprite.rect.width / img.sprite.rect.height;
+            }
+            var label = btn.GetComponentInChildren<TMP_Text>();
+            if (label != null)
+            {
+                label.text = el.displayName;
             }
 
             // Сбросим масштаб на стандартный

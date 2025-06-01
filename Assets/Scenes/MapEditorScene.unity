@@ -1044,9 +1044,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 98a5434f4a990404ca5e278702954f68, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotateSpeed: 3
-  panSpeed: 3
-  zoomSpeed: 500
+  rotateSpeed: 1
+  panSpeed: 1
+  zoomSpeed: 250
   minDist: 5
   maxDist: 400
   invertX: 0
@@ -2128,7 +2128,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}
   m_AnchoredPosition: {x: 0, y: 90}
-  m_SizeDelta: {x: 0, y: 180}
+  m_SizeDelta: {x: 0, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &371855530
 MonoBehaviour:
@@ -2190,18 +2190,46 @@ MonoBehaviour:
     elements:
     - {fileID: 11400000, guid: bed4e96692250f1458f0aac372340011, type: 2}
     - {fileID: 11400000, guid: 531e9e5729d379845879307b9f3f20e8, type: 2}
+  - name: "\u0414\u0435\u0440\u0435\u0432\u044C\u044F"
+    elements:
+    - {fileID: 11400000, guid: ff93083f805fb064bbbc8b142717de41, type: 2}
+    - {fileID: 11400000, guid: 0213c78f3ce4e374ea12cf8f5a350560, type: 2}
+    - {fileID: 11400000, guid: f23ea23c1bc000e45a02ecba7488d512, type: 2}
+    - {fileID: 11400000, guid: 1c1fe268c4ad2504b91994b2a4f95b6a, type: 2}
   - name: "\u0421\u0442\u0435\u043D\u044B"
     elements:
     - {fileID: 11400000, guid: 3f67b775b9414e14bbdb55cebf3b355d, type: 2}
-  - name: "\u041A\u0430\u043C\u043D\u0438"
+    - {fileID: 11400000, guid: 33e060cac6bf441419a44033b1aa135a, type: 2}
+    - {fileID: 11400000, guid: e78d04ab426ca2a498f193eebf57a7dd, type: 2}
+    - {fileID: 11400000, guid: d44849e409f1af34eaea47dc2675bd10, type: 2}
+  - name: "\u0414\u043E\u0440\u043E\u0433\u0438"
     elements:
-    - {fileID: 11400000, guid: cefc51e20b774e348adc41c31ca3f766, type: 2}
-  - name: "\u041A\u0443\u0431\u044B"
+    - {fileID: 11400000, guid: 5863352dc7d148643ba9718ba24adcb4, type: 2}
+    - {fileID: 11400000, guid: 75bfd6c9ee89c4440977bc51ffacd93a, type: 2}
+    - {fileID: 11400000, guid: 22a5774bc96ac5c4a949ad496cc85303, type: 2}
+    - {fileID: 11400000, guid: c03aa9d0cc46eb743b3aaf8ef0a653dc, type: 2}
+  - name: "\u041E\u043A\u0440\u0443\u0436\u0435\u043D\u0438\u0435"
     elements:
-    - {fileID: 11400000, guid: 3c724222444e8fc49a5c6827cf23a2d3, type: 2}
-    - {fileID: 11400000, guid: f877476c16dff6a429d7a43481138015, type: 2}
-  - name: Empty
-    elements: []
+    - {fileID: 11400000, guid: fe4799cd5531de146bfc8bc19e576b02, type: 2}
+    - {fileID: 11400000, guid: 92f16959bc9b7d94db68e694c7cf6b4b, type: 2}
+  - name: "\u0414\u043E\u043C\u0430"
+    elements:
+    - {fileID: 11400000, guid: aca6adc8188dae34ca575350f715a8a0, type: 2}
+    - {fileID: 11400000, guid: 7fccab0a2347d3847b85c68bd854c315, type: 2}
+    - {fileID: 11400000, guid: ee7c9b9187aa0874a87b10af41fb976c, type: 2}
+    - {fileID: 11400000, guid: 8ac3bf19029a04148acfb3d1469a5432, type: 2}
+  - name: Aruco
+    elements:
+    - {fileID: 11400000, guid: 4fb6ef09eae32c5498664ec3cc276d21, type: 2}
+    - {fileID: 11400000, guid: e611def49a39f3844bf493be11a940d4, type: 2}
+    - {fileID: 11400000, guid: df7bc1b02035ee94abb9379c955a2aa7, type: 2}
+    - {fileID: 11400000, guid: 553c49901ecf2d24aa6c3677e3a4e19c, type: 2}
+    - {fileID: 11400000, guid: 62f3910c668cca744b9826781b878f98, type: 2}
+    - {fileID: 11400000, guid: 6436f4a2a5bea3746baba1f409ded399, type: 2}
+    - {fileID: 11400000, guid: a08308518a2ed9c4c8703f37e76d39c0, type: 2}
+    - {fileID: 11400000, guid: c8293a43557eb04449f03125b42fe481, type: 2}
+    - {fileID: 11400000, guid: 1fbaeada2fa5b64458b5bf7a475f86f8, type: 2}
+    - {fileID: 11400000, guid: 19be6f9fc0bacf145bbe348d6528c015, type: 2}
   - name: Empty
     elements: []
 --- !u!1 &394113655
@@ -4326,7 +4354,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 140}
+  m_SizeDelta: {x: 0, y: 160}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &980862446
 MonoBehaviour:
