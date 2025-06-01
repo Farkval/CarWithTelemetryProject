@@ -6,15 +6,8 @@ namespace Assets.Scripts.Consts
     {
         public static readonly List<string> ToolsToggles = new()
         {
-            "RaiseToggle",
-            "PitToggle",
-            "GrassToggle",
-            "MudToggle",
-            "IceToggle",
-            "WaterToggle",
-            "GravelToggle"
+            "ModifySurfaceToggle",
+            "ModifyTerrainToggle",
         };
-
-        public const string BASE_CAR_CAMERA = "BaseCamera";
     }
 }

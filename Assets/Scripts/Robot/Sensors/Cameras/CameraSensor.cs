@@ -12,17 +12,16 @@ namespace Assets.Scripts.Robot.Sensors.Cameras
     /// Камерный сенсор для мобильного робота.
     /// Возвращает список объектов с тегом "Element", находящихся в поле зрения и не перекрытых.
     /// </summary>
-    [RequireComponent(typeof(Camera))]
     public class CameraSensor : MonoBehaviour, IApplySettings, ICameraSensor
     {
         [SerializeField][Range(1, 180)] public float fieldOfView = 60f;
 
         [Header("Общие параметры")]
         [Tooltip("Максимальная дальность детекции в метрах")]
-        [SerializeField] public float maxDistance = 50f;
+        public float maxDistance = 50f;
 
         [Tooltip("Частота обновления, Гц (0 = каждый кадр)")]
-        [SerializeField] public float updateRateHz = 10f;
+        public float updateRateHz = 10f;
 
         [Tooltip("Точки выборки на объект (1 = центр Bounds)")]
         [Range(1, 9)]
@@ -33,9 +32,9 @@ namespace Assets.Scripts.Robot.Sensors.Cameras
 
         [Header("Кэширование")]
         [Tooltip("Как часто обновлять кэш объектов, сек. (0 = не кешировать)")]
-        [SerializeField] public float refreshElementsEvery = 5f;
+        public float refreshElementsEvery = 5f;
 
-        [SerializeField] public bool isEnabled;
+        public bool isEnabled;
 
         // --- Внутренние поля ---
         private Camera _cam;
@@ -58,7 +57,7 @@ namespace Assets.Scripts.Robot.Sensors.Cameras
                 return;
             }
 
-            ApplySettings();
+            enabled = isEnabled;
 
             if (refreshElementsEvery <= 0f)
                 FindElements();
@@ -90,9 +89,16 @@ namespace Assets.Scripts.Robot.Sensors.Cameras
             Scan();
         }
 
+#if UNITY_EDITOR
+        void OnValidate()
+        {
+            if (_cam == null)
+                _cam = GetComponent<Camera>();
+            ApplySettings();
+        }
+#endif
         public void ApplySettings()
         {
-            enabled = isEnabled;
             _cam.enabled = isEnabled;
             _cam.fieldOfView = fieldOfView;
         }

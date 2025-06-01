@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.Garage.Models;
+﻿using Assets.Scripts.Garage.Interfaces;
+using Assets.Scripts.Garage.Models;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -86,10 +87,17 @@ namespace Assets.Scripts.Garage
                 {
                     var field = comp.GetType().GetField(fsd.fieldName,
                         BindingFlags.Instance | BindingFlags.Public);
-                    if (field == null) continue;
+                    if (field == null) 
+                        continue;
 
                     object parsed = ParseStringToFieldType(fsd.rawValue, field.FieldType);
                     field.SetValue(comp, parsed);
+                }
+
+
+                if (comp is IApplySettings applySettingsComponent)
+                {
+                    applySettingsComponent.ApplySettings();
                 }
             }
         }

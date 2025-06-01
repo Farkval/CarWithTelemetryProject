@@ -1,12 +1,17 @@
 ﻿using Assets.Scripts.MapEditor.Actions;
 using Assets.Scripts.MapEditor.Consts;
 using Assets.Scripts.MapEditor.Models;
+using Assets.Scripts.MapEditor.Models.Enums;
+using Assets.Scripts.MapEditor.Tools;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace Assets.Scripts.MapEditor.Controllers
 {
@@ -19,6 +24,22 @@ namespace Assets.Scripts.MapEditor.Controllers
         [SerializeField] private Camera sceneCamera;
         [SerializeField] private Transform previewParent;
         [SerializeField] private MapSerializer mapSerializer;
+
+        [Header("Рельеф")]
+        [SerializeField] private Toggle modifyTerrainToggle;
+        [SerializeField] private TMP_Text modifyTerrainModeText;
+        [SerializeField] private TMP_Dropdown modifyTerrainModeDropdown;
+        [SerializeField] private TMP_Text modifyTerrainStrengthText;
+        [SerializeField] private Slider modifyTerrainStrengthSlider;
+        [SerializeField] private TMP_Text modifyTerrainRadiusText;
+        [SerializeField] private Slider modifyTerrainRadiusSlider;
+
+        [Header("Покрытие")]
+        [SerializeField] private Toggle modifySurfaceToggle;
+        [SerializeField] private TMP_Text modifySurfaceModeText;
+        [SerializeField] private TMP_Dropdown modifySurfaceModeDropdown;
+        [SerializeField] private TMP_Text modifySurfaceRadiusText;
+        [SerializeField] private Slider modifySurfaceRadiusSlider;
 
         private ElementData _activeElement;
         private GameObject _previewInstance;
@@ -34,8 +55,8 @@ namespace Assets.Scripts.MapEditor.Controllers
         private Vector3 _beforePos, _beforeRot, _beforeScale;
         private float _currentScaleFactor = 1f;
 
-        private const float CELL_STEP = 0.05f;
-        private const float ROTATE_STEP = 2.5f;
+        private const float CELL_STEP = 0.1f;
+        private const float ROTATE_STEP = 5f;
 
         public UndoRedoController UndoRedoManager { get { return _undoRedo; } }
 
@@ -43,6 +64,40 @@ namespace Assets.Scripts.MapEditor.Controllers
         {
             _elementPaletteUIController = FindFirstObjectByType<ElementPaletteUIController>();
             _terrain = FindFirstObjectByType<MapTerrain>();
+
+            ConfigureTerrainTools();
+        }
+
+        private void ConfigureTerrainTools()
+        {
+            SetModifyTerrainToolsActive(false);
+            modifyTerrainToggle.onValueChanged.AddListener(SetModifyTerrainToolsActive);
+            modifyTerrainModeDropdown.onValueChanged.AddListener((i) => modifyTerrainToggle.GetComponent<TerrainBrushTool>().mode = i == 0 ? TerrainBrushToolMode.Raise : TerrainBrushToolMode.Pit);
+            modifyTerrainStrengthSlider.onValueChanged.AddListener((v) => modifyTerrainToggle.GetComponent<TerrainBrushTool>().strength = v);
+            modifyTerrainRadiusSlider.onValueChanged.AddListener((v) => modifyTerrainToggle.GetComponent<TerrainBrushTool>().radius = v);
+
+            SetModifySurfaceToolsActive(false);
+            modifySurfaceToggle.onValueChanged.AddListener(SetModifySurfaceToolsActive);
+            modifySurfaceModeDropdown.onValueChanged.AddListener((i) => modifySurfaceToggle.GetComponent<SurfaceBrushTool>().surfaceType = (SurfaceType)Enum.GetValues(typeof(SurfaceType)).GetValue(i));
+            modifySurfaceRadiusSlider.onValueChanged.AddListener((v) => modifySurfaceToggle.GetComponent<SurfaceBrushTool>().radius = v);
+        }
+
+        private void SetModifyTerrainToolsActive(bool active)
+        {
+            modifyTerrainModeDropdown.gameObject.SetActive(active);
+            modifyTerrainModeText.gameObject.SetActive(active);
+            modifyTerrainStrengthSlider.gameObject.SetActive(active);
+            modifyTerrainStrengthText.gameObject.SetActive(active);
+            modifyTerrainRadiusSlider.gameObject.SetActive(active);
+            modifyTerrainRadiusText.gameObject.SetActive(active);
+        }
+
+        private void SetModifySurfaceToolsActive(bool active)
+        {
+            modifySurfaceModeText.gameObject.SetActive(active);
+            modifySurfaceModeDropdown.gameObject.SetActive(active);
+            modifySurfaceRadiusSlider.gameObject.SetActive(active);
+            modifySurfaceRadiusText.gameObject.SetActive(active);
         }
 
         private void Update()

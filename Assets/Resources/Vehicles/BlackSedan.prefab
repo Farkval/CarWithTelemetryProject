@@ -790,7 +790,7 @@ GameObject:
   - component: {fileID: 6564181096883235556}
   m_Layer: 0
   m_Name: BlackSedan
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -902,7 +902,7 @@ GameObject:
   - component: {fileID: 4710778346607057052}
   - component: {fileID: 5962274681254840314}
   - component: {fileID: 6338276782965091170}
-  - component: {fileID: 5756454371725147455}
+  - component: {fileID: 8469293421488466690}
   m_Layer: 0
   m_Name: BCamera
   m_TagString: Untagged
@@ -1034,7 +1034,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rayPrefab: {fileID: 6035297316502295080, guid: fce96402150c67a4490cc55c304d3326, type: 3}
   rayDuration: 0.1
---- !u!114 &5756454371725147455
+--- !u!114 &8469293421488466690
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1043,17 +1043,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 7282951656464083560}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f6ff1c7a09c2ea24d9fcf8f340a78a2a, type: 3}
+  m_Script: {fileID: 11500000, guid: 4b31205898707d440bf45df8709209c9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fieldOfView: 60
+  fieldOfView: 30
   maxDistance: 50
   updateRateHz: 10
   samplePointsPerAxis: 9
   visibleLayers:
     serializedVersion: 2
-    m_Bits: 384
-  refreshElementsEvery: 0
+    m_Bits: 0
+  refreshElementsEvery: 5
   isEnabled: 1
 --- !u!1 &7498305460802584021
 GameObject:
@@ -1246,7 +1246,7 @@ GameObject:
   - component: {fileID: 3781082692339636194}
   - component: {fileID: 6120009558846205374}
   - component: {fileID: 6028302986786824247}
-  - component: {fileID: 7736663067945683065}
+  - component: {fileID: 6000982893978282908}
   m_Layer: 0
   m_Name: FCamera
   m_TagString: Untagged
@@ -1378,7 +1378,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rayPrefab: {fileID: 6035297316502295080, guid: fce96402150c67a4490cc55c304d3326, type: 3}
   rayDuration: 0.1
---- !u!114 &7736663067945683065
+--- !u!114 &6000982893978282908
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1387,17 +1387,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 9123977906815445416}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f6ff1c7a09c2ea24d9fcf8f340a78a2a, type: 3}
+  m_Script: {fileID: 11500000, guid: 4b31205898707d440bf45df8709209c9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fieldOfView: 60
+  fieldOfView: 30
   maxDistance: 50
   updateRateHz: 10
   samplePointsPerAxis: 9
   visibleLayers:
     serializedVersion: 2
     m_Bits: 384
-  refreshElementsEvery: 0
+  refreshElementsEvery: 5
   isEnabled: 1
 --- !u!1001 &848048336458792907
 PrefabInstance:

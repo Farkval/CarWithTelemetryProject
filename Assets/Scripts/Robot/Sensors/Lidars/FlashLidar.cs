@@ -59,7 +59,7 @@ namespace Assets.Scripts.Robot.Sensors.Lidars
 
         private void Awake()
         {
-            enabled = isEnabled;
+            ApplySettings();
         }
 
         private void Start()

@@ -65,8 +65,10 @@ public class ElementPaletteUIController : MonoBehaviour
             // 2) Подписываемся на onValueChanged
             tog.onValueChanged.AddListener(isOn =>
             {
-                if (isOn) ShowElementsOfCategory(cat);
-                else ClearElements();
+                if (isOn) 
+                    ShowElementsOfCategory(cat);
+                else 
+                    ClearElements();
             });
         }
     }

@@ -1,5 +1,6 @@
 ﻿using Assets.Scripts.Consts;
 using Assets.Scripts.MapEditor.Controllers;
+using Assets.Scripts.MapEditor.Models;
 using Assets.Scripts.MapEditor.Models.Enums;
 using Assets.Scripts.Robot.Api.Interfaces;
 using Assets.Scripts.Robot.Models.Enums;
@@ -76,6 +77,7 @@ namespace Assets.Scripts.Robot.Cars
         private Quaternion initialLocalRotFR;
         private Quaternion initialLocalRotRL;
         private Quaternion initialLocalRotRR;
+        private LayerMask _elementLayerMask;
         #endregion
 
         void Awake()
@@ -106,6 +108,8 @@ namespace Assets.Scripts.Robot.Cars
 
             ApplyAntiRoll(frontLeftWheel, frontRightWheel);
             ApplyAntiRoll(rearLeftWheel, rearRightWheel);
+
+            _elementLayerMask = LayerMask.GetMask("Element");
         }
 
         void FixedUpdate()
@@ -255,7 +259,7 @@ namespace Assets.Scripts.Robot.Cars
                                    WheelFrictionCurve baseFwd,
                                    WheelFrictionCurve baseSide)
         {
-            SurfaceType st = _terrain.SurfaceAt(wc.transform.position);
+            SurfaceType st = DetectSurface(wc);
             (float kFwd, float kSide) = SurfaceFrictionConst.SurfaceFriction.TryGetValue(st, out var k) ? k : (1, 1);
 
             // глобальные мультипликаторы пользователя
@@ -268,6 +272,25 @@ namespace Assets.Scripts.Robot.Cars
             wc.forwardFriction = baseFwd;
             wc.sidewaysFriction = baseSide;
         }
+
+        SurfaceType DetectSurface(WheelCollider wc)
+        {
+            // Берём точку чуть выше колеса, чтобы гарантированно выйти за пределы коллайдера диска
+            Vector3 origin = wc.transform.position + Vector3.up * .1f;
+
+            // Стреляем вниз по слоям, где есть дорога/мост/земля
+            if (Physics.Raycast(origin, Vector3.down, out var hit, 5f, _elementLayerMask))
+            {
+                // 1) Если объект имеет компонент SurfaceOverride – используем его
+                var ov = hit.collider.GetComponent<SurfaceOverride>();
+                if (ov) 
+                    return ov.surface;
+            }
+
+            // ничего не попали  →  берём карту Terrain как fallback
+            return _terrain.SurfaceAt(wc.transform.position);
+        }
+
         #endregion
 
         private void UpdateWheelMeshes()
