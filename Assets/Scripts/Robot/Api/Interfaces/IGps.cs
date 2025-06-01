@@ -1,11 +1,9 @@
-﻿using Assets.Scripts.Robot.Api.Attributes;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Assets.Scripts.Robot.Api.Interfaces
 {
     public interface IGps
     {
-        [RobotApi]
         Vector3 Position { get; } 
     }
 }

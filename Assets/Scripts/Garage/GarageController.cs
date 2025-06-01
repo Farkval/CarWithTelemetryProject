@@ -155,7 +155,7 @@ namespace Assets.Scripts.Garage
             list.AddRange(car.GetComponentsInChildren<FlashLidar>());
             list.AddRange(car.GetComponentsInChildren<MechanicalLidar>());
             list.AddRange(car.GetComponentsInChildren<MemsLidar>());
-            list.AddRange(car.GetComponentsInChildren<CameraSettings>());
+            list.AddRange(car.GetComponentsInChildren<CameraSensor>());
 
             return list;
         }

@@ -1,10 +1,10 @@
-﻿namespace Assets.Scripts.Utils
-{
-    using System;
-    using System.IO;
-    using System.Runtime.InteropServices;
-    using UnityEngine;
+﻿using System;
+using System.IO;
+using System.Runtime.InteropServices;
+using UnityEngine;
 
+namespace Assets.Scripts.Utils
+{
     /// <summary>
     /// Универсальный класс для показа стандартного
     /// Open/Save File Dialog под Windows (comdlg32.dll).
@@ -181,7 +181,7 @@
     /// <summary>
     /// Нативные вызовы в comdlg32.dll
     /// </summary>
-    internal static class NativeFileDialog
+    static class NativeFileDialog
     {
         [DllImport("comdlg32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         [return: MarshalAs(UnmanagedType.Bool)]

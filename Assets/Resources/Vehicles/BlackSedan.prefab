@@ -901,8 +901,8 @@ GameObject:
   - component: {fileID: 1646405072343094555}
   - component: {fileID: 4710778346607057052}
   - component: {fileID: 5962274681254840314}
-  - component: {fileID: 7853915063991011928}
   - component: {fileID: 6338276782965091170}
+  - component: {fileID: 5756454371725147455}
   m_Layer: 0
   m_Name: BCamera
   m_TagString: Untagged
@@ -932,7 +932,7 @@ Camera:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7282951656464083560}
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 1
   m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
@@ -1020,23 +1020,6 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
---- !u!114 &7853915063991011928
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7282951656464083560}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 32303a9a8d492ed4ab6e01c46639ba7d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  fieldOfView: 30
-  renderWidth: 1280
-  renderHeight: 720
-  enableHDR: 0
-  isEnabled: 0
 --- !u!114 &6338276782965091170
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1051,6 +1034,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rayPrefab: {fileID: 6035297316502295080, guid: fce96402150c67a4490cc55c304d3326, type: 3}
   rayDuration: 0.1
+--- !u!114 &5756454371725147455
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7282951656464083560}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6ff1c7a09c2ea24d9fcf8f340a78a2a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fieldOfView: 60
+  maxDistance: 50
+  updateRateHz: 10
+  samplePointsPerAxis: 9
+  visibleLayers:
+    serializedVersion: 2
+    m_Bits: 384
+  refreshElementsEvery: 0
+  isEnabled: 1
 --- !u!1 &7498305460802584021
 GameObject:
   m_ObjectHideFlags: 0
@@ -1241,8 +1245,8 @@ GameObject:
   - component: {fileID: 8545788760948932321}
   - component: {fileID: 3781082692339636194}
   - component: {fileID: 6120009558846205374}
-  - component: {fileID: 7416251523468279002}
   - component: {fileID: 6028302986786824247}
+  - component: {fileID: 7736663067945683065}
   m_Layer: 0
   m_Name: FCamera
   m_TagString: Untagged
@@ -1272,7 +1276,7 @@ Camera:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9123977906815445416}
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 1
   m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
@@ -1360,23 +1364,6 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
---- !u!114 &7416251523468279002
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9123977906815445416}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 32303a9a8d492ed4ab6e01c46639ba7d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  fieldOfView: 30
-  renderWidth: 1280
-  renderHeight: 720
-  enableHDR: 0
-  isEnabled: 0
 --- !u!114 &6028302986786824247
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1391,6 +1378,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rayPrefab: {fileID: 6035297316502295080, guid: fce96402150c67a4490cc55c304d3326, type: 3}
   rayDuration: 0.1
+--- !u!114 &7736663067945683065
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9123977906815445416}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6ff1c7a09c2ea24d9fcf8f340a78a2a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fieldOfView: 60
+  maxDistance: 50
+  updateRateHz: 10
+  samplePointsPerAxis: 9
+  visibleLayers:
+    serializedVersion: 2
+    m_Bits: 384
+  refreshElementsEvery: 0
+  isEnabled: 1
 --- !u!1001 &848048336458792907
 PrefabInstance:
   m_ObjectHideFlags: 0

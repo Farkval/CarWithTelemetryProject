@@ -1,5 +1,4 @@
-﻿using Assets.Scripts.Robot.Api.Attributes;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Assets.Scripts.Robot.Api.Interfaces
 {
@@ -8,12 +7,10 @@ namespace Assets.Scripts.Robot.Api.Interfaces
         /// <summary>
         /// Список лидаров
         /// </summary>
-        [RobotApi]
         List<ILidar> Lidars { get; }
         /// <summary>
         /// Список камер
         /// </summary>
-        [RobotApi]
         List<ICameraSensor> Cameras { get; }
         /// <summary>
         /// Ручное управление

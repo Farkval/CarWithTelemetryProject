@@ -31,7 +31,7 @@ namespace Assets.Scripts.Robot.Cars
         public float suspensionDistance = 0.15f;
         public float springStrength = 35000f;
         public float springDamper = 4500f;
-        public float antiRollStrength = 5000f;     // стабилизатор
+        public float antiRollStrength = 5000f;
 
         [Header("Friction Settings")]
         [Range(0, 2)] public float globalFrictionMultiplier = 1f;
@@ -57,9 +57,9 @@ namespace Assets.Scripts.Robot.Cars
         public float[] WheelRPM => _rpm;
         public Vector3 Position => transform.position;
         public float YawDeg => transform.eulerAngles.y;
-        public List<ILidar> Lidars { get; } = new();
+        public List<ILidar> Lidars { get; private set; } = new();
         public bool ManualControl { get; set; } = true;
-        public List<ICameraSensor> Cameras => new();
+        public List<ICameraSensor> Cameras { get; private set; } = new();
         #endregion
 
         #region ⭑ private state
@@ -71,7 +71,6 @@ namespace Assets.Scripts.Robot.Cars
         // friction templates
         private WheelFrictionCurve _flFwd0, _flSide0, _frFwd0, _frSide0, _rlFwd0, _rlSide0, _rrFwd0, _rrSide0;
         private MapTerrain _terrain;
-        private PythonScriptRunner _pythonScriptRunner;
 
         private Quaternion initialLocalRotFL;
         private Quaternion initialLocalRotFR;
@@ -99,7 +98,6 @@ namespace Assets.Scripts.Robot.Cars
             Lidars.AddRange(GetComponentsInChildren<ILidar>());
             Cameras.AddRange(GetComponentsInChildren<ICameraSensor>());
             _terrain = FindFirstObjectByType<MapTerrain>();
-            _pythonScriptRunner = GetComponent<PythonScriptRunner>();
 
             initialLocalRotFL = frontLeftMesh.localRotation;
             initialLocalRotFR = frontRightMesh.localRotation;
@@ -116,8 +114,8 @@ namespace Assets.Scripts.Robot.Cars
             float throttleL, throttleR, steerInput;
             if (ManualControl)
             {
-                float v = Input.GetAxis("Vertical");             // W/S
-                float h = Input.GetAxis("Horizontal");           // A/D
+                float v = Input.GetAxis("Vertical");
+                float h = Input.GetAxis("Horizontal");
                 throttleL = throttleR = v;
                 steerInput = h;
                 if (Input.GetKey(KeyCode.Space)) 
@@ -138,24 +136,24 @@ namespace Assets.Scripts.Robot.Cars
             UpdateWheelMeshes();
             CaptureRPM();
 
-            ApplyAntiRoll(frontLeftWheel, frontRightWheel);    // NEW
+            ApplyAntiRoll(frontLeftWheel, frontRightWheel);
             ApplyAntiRoll(rearLeftWheel, rearRightWheel);
 
-            _brakeCmd = 0;                                // сбросить до следующего кадра
+            _brakeCmd = 0;
         }
 
-        void SetSuspension(WheelCollider wc)           // NEW
+        void SetSuspension(WheelCollider wc)
         {
             wc.suspensionDistance = suspensionDistance;
 
             JointSpring js = wc.suspensionSpring;
             js.spring = springStrength;
             js.damper = springDamper;
-            js.targetPosition = .5f;                   // 50 % хода
+            js.targetPosition = .5f;
             wc.suspensionSpring = js;
         }
 
-        void ApplyAntiRoll(WheelCollider left, WheelCollider right)   // NEW
+        void ApplyAntiRoll(WheelCollider left, WheelCollider right)
         {
             bool lGround = left.GetGroundHit(out WheelHit hitL);
             bool rGround = right.GetGroundHit(out WheelHit hitR);
@@ -183,7 +181,7 @@ namespace Assets.Scripts.Robot.Cars
 
         void ApplyDrive(float left, float right)
         {
-            ApplyBrake(_brakeCmd * brakeTorque);         // если задано скриптом / Space
+            ApplyBrake(_brakeCmd * brakeTorque);
 
             float speedLimit = (left >= 0 && right >= 0) ? forwardSpeedLimit : reverseSpeedLimit;
             if (_currentSpeed > speedLimit)
