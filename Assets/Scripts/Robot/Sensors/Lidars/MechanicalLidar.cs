@@ -1,0 +1,128 @@
+﻿using Assets.Scripts.Garage.Attributes;
+using Assets.Scripts.Robot.Api.Interfaces;
+using Assets.Scripts.Sensors.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+
+namespace Assets.Scripts.Robot.Sensors.Lidars
+{
+    public class MechanicalLidar : MonoBehaviour, ILidarSensor
+    {
+        [Header("Main Settings")]
+        [Tooltip("Максимальная дальность, на которой лидар регистрирует объекты.")]
+        public float maxDistance = 100f;
+
+        [Tooltip("Вертикальный угол обзора (сколько \"лучей\" будет формироваться по вертикали).")]
+        public float verticalFOV = 30f;
+
+        [Tooltip("Число \"линий\" сканирования по вертикали. Например, 16, 32 и т.д.")]
+        public int verticalResolution = 16;
+
+        [Tooltip("Частота вращения лидара (градусов в секунду).")]
+        public float rotationSpeed = 30f;
+
+        [Tooltip("Частота сканирования (обновление за секунду). При слишком высокой нужно оптимизировать код.")]
+        public float scanFrequency = 10f;
+
+        [Tooltip("Активность элемента")]
+        [DisplayName("Активность")]
+        public bool isEnabled;
+
+        [Tooltip("Слой, по которому стреляют лучи. Лучше выделить отдельные слои для объектов окружения.")]
+        public LayerMask layerMask = ~0;
+
+        public event Action<List<ILidarPoint>> OnScanComplete;
+
+        private float _currentRotationAngle = 0f;
+        private float _scanTimer = 0f;
+        private List<ILidarPoint> _pointCloud = new List<ILidarPoint>();
+        private float _nearestDistance = Mathf.Infinity;
+
+        public List<ILidarPoint> PointCloud => _pointCloud;
+        public float Nearest => _pointCloud.Min(p => p.Distance);
+
+        public void Initialize()
+        {
+            _pointCloud.Clear();
+            _nearestDistance = Mathf.Infinity;
+            _currentRotationAngle = 0f;
+            _scanTimer = 0f;
+        }
+
+        private void Awake()
+        {
+            enabled = isEnabled;
+        }
+
+        private void Start()
+        {
+            Initialize();
+        }
+
+        private void Update()
+        {
+            if (!isEnabled)
+                return;
+
+            _currentRotationAngle += rotationSpeed * Time.deltaTime;
+            if (_currentRotationAngle >= 360f) _currentRotationAngle -= 360f;
+
+            _scanTimer += Time.deltaTime;
+            if (_scanTimer >= 1f / scanFrequency)
+            {
+                _scanTimer = 0f;
+                PerformScan();
+            }
+        }
+
+        public void PerformScan()
+        {
+            _pointCloud.Clear();
+            _nearestDistance = Mathf.Infinity;
+
+            Quaternion baseRotation = Quaternion.Euler(0f, _currentRotationAngle, 0f);
+
+            for (int i = 0; i < verticalResolution; i++)
+            {
+                float vPercent = (float)i / (verticalResolution - 1);
+                float vAngle = Mathf.Lerp(-verticalFOV / 2f, verticalFOV / 2f, vPercent);
+
+                Quaternion verticalRot = Quaternion.Euler(vAngle, 0f, 0f);
+                Quaternion rayRotation = baseRotation * verticalRot;
+
+                Vector3 direction = rayRotation * Vector3.forward;
+                Vector3 origin = transform.position;
+
+                if (Physics.Raycast(origin, direction, out RaycastHit hit, maxDistance, layerMask))
+                {
+                    float dist = hit.distance;
+                    LidarPoint pt = new LidarPoint(hit.point, dist);
+                    _pointCloud.Add(pt);
+
+                    if (dist < _nearestDistance)
+                    {
+                        _nearestDistance = dist;
+                    }
+                }
+            }
+
+            OnScanComplete?.Invoke(_pointCloud);
+        }
+
+        public void ApplySettings()
+        {
+            enabled = isEnabled;
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            Gizmos.color = Color.green;
+            foreach (var pt in _pointCloud)
+            {
+                Gizmos.DrawSphere(pt.WorldPosition, 0.02f);
+            }
+        }
+    }
+}

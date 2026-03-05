@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0535613faf27f2e4c9cb64008aa70844, type: 3}
+  m_Name: wall_wood_2
+  m_EditorClassIdentifier: 
+  displayName: "\u0414\u0435\u0440\u0435\u0432\u044F\u043D\u043D\u0430\u044F \u0441\u0442\u0435\u043D\u0430
+    2"
+  icon: {fileID: 21300000, guid: 0d866c8a35af810478a660238e49ae87, type: 3}
+  prefab: {fileID: 7401471818363485725, guid: 5165896ddebe227478e8e501bfe90b15, type: 3}
+  minScale: 0.5
+  maxScale: 2
+  customProperties: []
