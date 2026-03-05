@@ -1,25 +1,170 @@
+ï»¿using Assets.Scripts.Game.Models;
+using Assets.Scripts.MapEditor.Consts;
+using Assets.Scripts.MapEditor.Controllers;
+using Assets.Scripts.MapEditor.Models;
+using Assets.Scripts.Utils;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
-/// <summary>
-/// Îáðàáîò÷èê õîòêååâ âî âðåìÿ èãðû
-/// </summary>
-public class GameKeyboardHandler : MonoBehaviour
+namespace Assets.Scripts.Game.Controllers
 {
-    public FourWheelsCarController carController;
-
-    private void Update()
+    public class GameController : MonoBehaviour
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        [SerializeField] private MapTerrain terrain;
+        [SerializeField] private DayNightController dayNightController;
+        [SerializeField] private GameUIController gameUIController;
+        [SerializeField] private Camera mainCamera;
+
+        private readonly List<SpawnPoint> _spawns = new();
+        private readonly List<Player> _players = new();
+        private readonly List<GameObject> _cars = new();
+
+        private int _nextPlayerIndex = 1;
+        private DateTime _gameStartedTime;
+        private TimeSpan _gameEndedTime;
+        public TimeSpan GameEllapsedTime => DateTime.UtcNow - _gameStartedTime;
+        public bool GameStarted { get; private set; }
+
+        public IReadOnlyList<SpawnPoint> SpawnPoints => _spawns;
+        public IReadOnlyList<Player> Players => _players;
+        public IReadOnlyList<GameObject> Cars => _cars;
+
+        private void Awake()
         {
-            SceneManager.LoadScene(SceneName.MAIN_MENU_SCENE);
+            _cars.AddRange(Resources.LoadAll<GameObject>("Vehicles"));
+
+            gameUIController.InitializeCars(_cars);
         }
-        if (Input.GetKeyDown(KeyCode.R))
+
+        public string LoadMap()
         {
-            if (carController == null)
+            string path = FileDialog.ShowOpen("JSON Ñ„Ð°Ð¹Ð»Ñ‹ (*.json)|*.json", "Ð’Ñ‹Ð±Ñ€Ð°Ñ‚ÑŒ ÐºÐ°Ñ€Ñ‚Ñƒ")?.FirstOrDefault();
+            if (string.IsNullOrEmpty(path) || !File.Exists(path))
+                return string.Empty;
+
+            foreach (var sp in _spawns) sp.ClearSpawn();
+            _spawns.Clear();
+
+            MapData data = JsonUtility.FromJson<MapData>(File.ReadAllText(path));
+
+            dayNightController.OnTimeChanged((int)data.timeOfDay);
+
+            var placedObjects = MapLoader.Load(data, terrain);
+
+            foreach (var po in placedObjects)
+            {
+                if (po.data.name != ElementNameConst.START_INSTANCE_NAME) continue;
+
+                _spawns.Add(new SpawnPoint(po.instance.transform.position,
+                                           po.instance.transform.rotation));
+            }
+
+            return Path.GetFileName(path);
+        }
+
+
+        public bool TryGetPlayer(int playerIndex, out Player player) =>
+            IndexGuard(_players, playerIndex, out player);
+
+        public bool TryGetCar(int carIndex, out GameObject car) =>
+            IndexGuard(_cars, carIndex, out car);
+
+        public bool TryGetSpawnPoint(int spawnIndex, out SpawnPoint spawnPoint) =>
+            IndexGuard(_spawns, spawnIndex, out spawnPoint);
+
+        private static bool IndexGuard<T>(IReadOnlyList<T> list, int index, out T element)
+        {
+            if (index < 0 || index >= list.Count)
+            {
+                element = default;
+                return false;
+            }
+
+            element = list[index];
+            return true;
+        }
+        public string AddNewPlayer()
+        {
+            var go = new GameObject($"Player_{_nextPlayerIndex}");
+            var player = go.AddComponent<Player>();
+            player.Initialize(_nextPlayerIndex++);
+
+            _players.Add(player);
+            return player.Name;
+        }
+
+        public int DeletePlayer(int playerIndex)
+        {
+            if (!TryGetPlayer(playerIndex, out var player)) return _players.Count;
+
+            player.OnPlayerDeleted();
+            Destroy(player.gameObject);
+
+            _players.RemoveAt(playerIndex);
+            return _players.Count;
+        }
+
+        public bool CanAddNewPlayer() => _players.Count < _spawns.Count;
+
+        public void DisableManualControlForOtherCars(Player active)
+        {
+            foreach (var p in _players)
+                p.UpdateCarManualControl(p == active && active?.ManualControl == true);
+        }
+
+        public void DisableCamerasForOtherCars(Player active)
+        {
+            foreach (var p in _players)
+            {
+                bool isActiveCam = p == active && active?.Spawned == true;
+                p.UpdateCameraEnabled(isActiveCam);
+
+                if (p.ThirdPersonCamera != null)
+                    p.ThirdPersonCamera.depth = isActiveCam ? 1 : 0;
+            }
+
+            bool mainIsOn = active == null || !active.Spawned;
+            mainCamera.enabled = mainIsOn;
+            mainCamera.depth = mainIsOn ? 1 : 0;
+        }
+
+        public void StartGame()
+        {
+            foreach (var p in _players)
+            {
+                p.Restart();
+                p.LaunchScript(true);
+            }
+
+            _gameStartedTime = DateTime.UtcNow;
+            GameStarted = true;
+        }
+
+        public void StopGame()
+        {
+            foreach (var p in _players)
+                p.LaunchScript(false);
+
+            _gameEndedTime = DateTime.UtcNow - _gameStartedTime;
+            GameStarted = false;
+        }
+
+        public bool AnyPlayerSpawned()
+        {
+            return _players.Any(p => p.Spawned);
+        }
+
+        public void StopRobot(string playerName)
+        {
+            var p = _players.FirstOrDefault(p => p.Name == playerName);
+            if (p == null)
                 return;
 
-            carController.ResetCarPosition();
+            p.LaunchScript(false);
+            p.Stop();
         }
     }
 }

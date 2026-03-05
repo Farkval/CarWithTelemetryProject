@@ -1,0 +1,334 @@
+﻿using Assets.Scripts.Consts;
+using Assets.Scripts.Garage.Attributes;
+using Assets.Scripts.MapEditor.Controllers;
+using Assets.Scripts.MapEditor.Models;
+using Assets.Scripts.MapEditor.Models.Enums;
+using Assets.Scripts.Robot.Api.Interfaces;
+using Assets.Scripts.Robot.Models.Enums;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace Assets.Scripts.Robot.Cars
+{
+    [SectionName("Мобильный робот")]
+    [RequireComponent(typeof(Rigidbody))]
+    public class FourWheelsCarController : MonoBehaviour, IRobotAPI
+    {
+        #region ⭑ Public fields
+        [Header("Wheel Colliders")]
+        public WheelCollider frontLeftWheel, frontRightWheel, rearLeftWheel, rearRightWheel;
+
+        [Header("Wheel Meshes (Optional)")]
+        public Transform frontLeftMesh, frontRightMesh, rearLeftMesh, rearRightMesh;
+
+        [Header("Car Settings")]
+        [DisplayName("Тип привода")]
+        public CarDriveType driveType = CarDriveType.RearWheelDrive;
+        [DisplayName("Мощность двигателя (Н·м)")]
+        public float maxMotorTorque = 1000f;
+        [DisplayName("Максимальный угол поворота колеса (°)")]
+        public float maxSteeringAngle = 30f;
+        [DisplayName("Максимальная скорость (км/ч)")]
+        public float maxSpeed = 120f;
+        [DisplayName("Ограничение скорости вперед (км/ч)")]
+        public float forwardSpeedLimit = 120f;
+        [DisplayName("Ограничение скорости назад (км/ч)")]
+        public float reverseSpeedLimit = 60f;
+        [DisplayName("Мощность тормозной системы (Н·м)")]
+        public float brakeTorque = 2000f;
+
+        [Header("Suspension")]
+        [DisplayName("Длина хода подвески (м)")]
+        public float suspensionDistance = 0.15f;
+        [DisplayName("Жесткость пружины подвески (Н/м)")]
+        public float springStrength = 35000f;
+        [DisplayName("Демпфирование пружины Н·с/м")]
+        public float springDamper = 4500f;
+        [DisplayName("Усилие против опрокидывания (Н/м)")]
+        public float antiRollStrength = 5000f;
+
+        [Header("Friction Settings")]
+        [DisplayName("Глобальный множитель трения колес")]
+        [Range(0, 2)] public float globalFrictionMultiplier = 1f;
+        [DisplayName("Множитель продольного трения")]
+        [Range(0, 2)] public float forwardFrictionMultiplier = 1f;
+        [DisplayName("Множитель поперечного трения")]
+        [Range(0, 2)] public float sidewaysFrictionMultiplier = 1f;
+        #endregion
+
+        #region ⭑ IRobotAPI implementation
+
+        public void SetMotorPower(float left, float right)
+        {
+            _cmdLeft = Mathf.Clamp(left, -1, 1);
+            _cmdRight = Mathf.Clamp(right, -1, 1);
+            ManualControl = false;
+        }
+
+        public void SetSteerAngle(float coef)
+        {
+            _cmdSteer = coef;
+        }
+
+        public void Brake(float power = 1)
+        {
+            _brakeCmd = Mathf.Clamp01(power);
+            ManualControl = false;
+        }
+
+        public float[] WheelRPM => _rpm;
+        public Vector3 Position => transform.position;
+        public float YawDeg => transform.eulerAngles.y;
+        public List<ILidar> Lidars { get; private set; } = new();
+        public bool ManualControl { get; set; } = true;
+        public List<ICameraSensor> Cameras { get; private set; } = new();
+        public float CurrentSpeed => _currentSpeed;
+        public float CurrentSteerAngle => _currentSteerAngle;
+        #endregion
+
+        #region ⭑ private state
+        private Rigidbody _rb;
+        private float _currentSpeed;
+        private float _currentSteerAngle;
+        private readonly float[] _rpm = new float[4];
+        private float _cmdLeft, _cmdRight, _brakeCmd, _cmdSteer;
+        private WheelFrictionCurve _flFwd0, _flSide0, _frFwd0, _frSide0, _rlFwd0, _rlSide0, _rrFwd0, _rrSide0;
+        private MapTerrain _terrain;
+
+        private Quaternion initialLocalRotFL;
+        private Quaternion initialLocalRotFR;
+        private Quaternion initialLocalRotRL;
+        private Quaternion initialLocalRotRR;
+        private LayerMask _elementLayerMask;
+        #endregion
+
+        void Awake()
+        {
+            _rb = GetComponent<Rigidbody>();
+            _rb.centerOfMass = new Vector3(0, -0.35f, 0);
+
+            SetSuspension(frontLeftWheel);
+            SetSuspension(frontRightWheel);
+            SetSuspension(rearLeftWheel);
+            SetSuspension(rearRightWheel);
+
+            _flFwd0 = frontLeftWheel.forwardFriction; _flSide0 = frontLeftWheel.sidewaysFriction;
+            _frFwd0 = frontRightWheel.forwardFriction; _frSide0 = frontRightWheel.sidewaysFriction;
+            _rlFwd0 = rearLeftWheel.forwardFriction; _rlSide0 = rearLeftWheel.sidewaysFriction;
+            _rrFwd0 = rearRightWheel.forwardFriction; _rrSide0 = rearRightWheel.sidewaysFriction;
+
+            Lidars.AddRange(GetComponentsInChildren<ILidar>());
+            Cameras.AddRange(GetComponentsInChildren<ICameraSensor>());
+            _terrain = FindFirstObjectByType<MapTerrain>();
+
+            initialLocalRotFL = frontLeftMesh.localRotation;
+            initialLocalRotFR = frontRightMesh.localRotation;
+            initialLocalRotRL = rearLeftMesh.localRotation;
+            initialLocalRotRR = rearRightMesh.localRotation;
+
+            ApplyAntiRoll(frontLeftWheel, frontRightWheel);
+            ApplyAntiRoll(rearLeftWheel, rearRightWheel);
+
+            _elementLayerMask = LayerMask.GetMask("Element");
+        }
+
+        void FixedUpdate()
+        {
+            float throttleL, throttleR, steerInput;
+            if (ManualControl)
+            {
+                float v = Input.GetAxis("Vertical");
+                float h = Input.GetAxis("Horizontal");
+                throttleL = throttleR = v;
+                steerInput = h;
+                if (Input.GetKey(KeyCode.Space))
+                    _brakeCmd = 1;
+            }
+            else
+            {
+                throttleL = _cmdLeft;
+                throttleR = _cmdRight;
+                steerInput = _cmdSteer;
+                //steerInput = Mathf.Clamp((_cmdRight - _cmdLeft), -1, 1);
+            }
+
+            ApplySteering(steerInput);
+            _currentSpeed = _rb.linearVelocity.magnitude * 3.6f;
+            ApplyDrive(throttleL, throttleR);
+            CapSpeed();
+            UpdateWheelFriction();
+            UpdateWheelMeshes();
+            CaptureRPM();
+
+            ApplyAntiRoll(frontLeftWheel, frontRightWheel);
+            ApplyAntiRoll(rearLeftWheel, rearRightWheel);
+
+            _brakeCmd = 0;
+        }
+
+        void SetSuspension(WheelCollider wc)
+        {
+            wc.suspensionDistance = suspensionDistance;
+
+            JointSpring js = wc.suspensionSpring;
+            js.spring = springStrength;
+            js.damper = springDamper;
+            js.targetPosition = .5f;
+            wc.suspensionSpring = js;
+        }
+
+        void ApplyAntiRoll(WheelCollider left, WheelCollider right)
+        {
+            bool lGround = left.GetGroundHit(out WheelHit hitL);
+            bool rGround = right.GetGroundHit(out WheelHit hitR);
+
+            if (!lGround && !rGround) return;
+
+            float travelL = lGround ? (-left.transform.InverseTransformPoint(hitL.point).y - left.radius) / left.suspensionDistance : 1;
+            float travelR = rGround ? (-right.transform.InverseTransformPoint(hitR.point).y - right.radius) / right.suspensionDistance : 1;
+
+            float force = (travelL - travelR) * antiRollStrength;
+
+            if (lGround)
+                _rb.AddForceAtPosition(left.transform.up * -force, left.transform.position);
+            if (rGround)
+                _rb.AddForceAtPosition(right.transform.up * force, right.transform.position);
+        }
+
+        #region ► low-level actions
+        void ApplySteering(float input)
+        {
+            float angle = maxSteeringAngle * Mathf.Clamp(input, -1, 1);
+            frontLeftWheel.steerAngle = angle;
+            frontRightWheel.steerAngle = angle;
+            _currentSteerAngle = angle;
+        }
+
+        void ApplyDrive(float left, float right)
+        {
+            ApplyBrake(_brakeCmd * brakeTorque);
+
+            float speedLimit = (left >= 0 && right >= 0) ? forwardSpeedLimit : reverseSpeedLimit;
+            if (_currentSpeed > speedLimit)
+            {
+                frontLeftWheel.motorTorque = 0;
+                frontRightWheel.motorTorque = 0;
+                rearLeftWheel.motorTorque = 0;
+                rearRightWheel.motorTorque = 0;
+                return;
+            }
+
+            float tqL = maxMotorTorque * left;
+            float tqR = maxMotorTorque * right;
+
+            switch (driveType)
+            {
+                case CarDriveType.FrontWheelDrive:
+                    frontLeftWheel.motorTorque = tqL;
+                    frontRightWheel.motorTorque = tqR;
+                    break;
+                case CarDriveType.RearWheelDrive:
+                    rearLeftWheel.motorTorque = tqL;
+                    rearRightWheel.motorTorque = tqR;
+                    break;
+                case CarDriveType.AllWheelDrive:
+                    frontLeftWheel.motorTorque = tqL;
+                    frontRightWheel.motorTorque = tqR;
+                    rearLeftWheel.motorTorque = tqL;
+                    rearRightWheel.motorTorque = tqR;
+                    break;
+            }
+        }
+
+        void ApplyBrake(float tq)
+        {
+            frontLeftWheel.brakeTorque = tq;
+            frontRightWheel.brakeTorque = tq;
+            rearLeftWheel.brakeTorque = tq;
+            rearRightWheel.brakeTorque = tq;
+            if (tq > 0)
+            {
+                frontLeftWheel.motorTorque = 0;
+                frontRightWheel.motorTorque = 0;
+                rearLeftWheel.motorTorque = 0;
+                rearRightWheel.motorTorque = 0;
+            }
+        }
+
+        void CapSpeed()
+        {
+            if (_currentSpeed > maxSpeed)
+                _rb.AddForce(-_rb.linearVelocity.normalized * 50f);
+        }
+
+        void CaptureRPM()
+        {
+            _rpm[0] += frontLeftWheel.rpm;
+            _rpm[1] += frontRightWheel.rpm;
+            _rpm[2] += rearLeftWheel.rpm;
+            _rpm[3] += rearRightWheel.rpm;
+        }
+        #endregion
+
+        #region ► friction (без изменений визуально)
+        void UpdateWheelFriction()
+        {
+            ApplyFrictionToWheel(frontLeftWheel, _flFwd0, _flSide0);
+            ApplyFrictionToWheel(frontRightWheel, _frFwd0, _frSide0);
+            ApplyFrictionToWheel(rearLeftWheel, _rlFwd0, _rlSide0);
+            ApplyFrictionToWheel(rearRightWheel, _rrFwd0, _rrSide0);
+        }
+
+        void ApplyFrictionToWheel(WheelCollider wc,
+                                   WheelFrictionCurve baseFwd,
+                                   WheelFrictionCurve baseSide)
+        {
+            SurfaceType st = DetectSurface(wc);
+            (float kFwd, float kSide) = SurfaceFrictionConst.SurfaceFriction.TryGetValue(st, out var k) ? k : (1, 1);
+
+            kFwd *= globalFrictionMultiplier * forwardFrictionMultiplier;
+            kSide *= globalFrictionMultiplier * sidewaysFrictionMultiplier;
+
+            baseFwd.asymptoteValue = baseFwd.extremumValue = baseFwd.extremumValue * kFwd;
+            baseSide.asymptoteValue = baseSide.extremumValue = baseSide.extremumValue * kSide;
+
+            wc.forwardFriction = baseFwd;
+            wc.sidewaysFriction = baseSide;
+        }
+
+        SurfaceType DetectSurface(WheelCollider wc)
+        {
+            Vector3 origin = wc.transform.position + Vector3.up * .1f;
+
+            if (Physics.Raycast(origin, Vector3.down, out var hit, 5f, _elementLayerMask))
+            {
+                var ov = hit.collider.GetComponent<SurfaceOverride>();
+                if (ov)
+                    return ov.surface;
+            }
+
+            return _terrain.SurfaceAt(wc.transform.position);
+        }
+
+        #endregion
+
+        private void UpdateWheelMeshes()
+        {
+            UpdateSingleWheel(frontLeftWheel, frontLeftMesh, initialLocalRotFL);
+            UpdateSingleWheel(frontRightWheel, frontRightMesh, initialLocalRotFR);
+            UpdateSingleWheel(rearLeftWheel, rearLeftMesh, initialLocalRotRL);
+            UpdateSingleWheel(rearRightWheel, rearRightMesh, initialLocalRotRR);
+        }
+
+        private void UpdateSingleWheel(WheelCollider collider, Transform mesh, Quaternion initialLocal)
+        {
+            if (mesh == null || collider == null)
+                return;
+
+            collider.GetWorldPose(out Vector3 pos, out Quaternion rot);
+
+            mesh.position = pos;
+            mesh.rotation = rot * initialLocal;
+        }
+    }
+}
