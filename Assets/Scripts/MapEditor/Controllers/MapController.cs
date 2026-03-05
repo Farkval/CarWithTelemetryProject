@@ -18,10 +18,9 @@ namespace Assets.Scripts.MapEditor.Controllers
 
         public void SetMap(MapSize mapSize)
         {
-            // выставляем dropdown без срабатывания лишнего onValueChanged
             sizeDropdown.SetValueWithoutNotify(Array.IndexOf(
                          (MapSize[])Enum.GetValues(typeof(MapSize)), mapSize));
-            OnSizeChanged(sizeDropdown.value);  // обновляем сцену
+            OnSizeChanged(sizeDropdown.value);
         }
 
         public void SetEnvironment(TimeOfDay tod)

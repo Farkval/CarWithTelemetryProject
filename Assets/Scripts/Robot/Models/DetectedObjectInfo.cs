@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace Assets.Scripts.Robot.Models
 {
-    // Структура с данными об объекте
     public struct DetectedObjectInfo : IDetectedObjectInfo
     {
         public string Name { get; set; }

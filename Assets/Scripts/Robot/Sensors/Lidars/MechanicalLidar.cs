@@ -3,14 +3,11 @@ using Assets.Scripts.Robot.Api.Interfaces;
 using Assets.Scripts.Sensors.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Assets.Scripts.Robot.Sensors.Lidars
 {
-    /// <summary>
-    /// 1) "Механический" лидар, имитирующий вращение вокруг вертикальной оси.
-    ///    Можно настраивать скорость вращения и разрешение сканирования по вертикали/горизонтали.
-    /// </summary>
     public class MechanicalLidar : MonoBehaviour, ILidarSensor
     {
         [Header("Main Settings")]
@@ -34,17 +31,17 @@ namespace Assets.Scripts.Robot.Sensors.Lidars
         public bool isEnabled;
 
         [Tooltip("Слой, по которому стреляют лучи. Лучше выделить отдельные слои для объектов окружения.")]
-        public LayerMask layerMask = ~0; // По умолчанию все слои
+        public LayerMask layerMask = ~0;
 
         public event Action<List<ILidarPoint>> OnScanComplete;
 
-        // Вспомогательные поля
         private float _currentRotationAngle = 0f;
         private float _scanTimer = 0f;
         private List<ILidarPoint> _pointCloud = new List<ILidarPoint>();
         private float _nearestDistance = Mathf.Infinity;
 
         public List<ILidarPoint> PointCloud => _pointCloud;
+        public float Nearest => _pointCloud.Min(p => p.Distance);
 
         public void Initialize()
         {
@@ -64,20 +61,14 @@ namespace Assets.Scripts.Robot.Sensors.Lidars
             Initialize();
         }
 
-        /// <summary>
-        /// Обновляем вращение и периодически запускаем скан.
-        /// </summary>
         private void Update()
         {
             if (!isEnabled)
                 return;
 
-            // Плавно вращаем лидар
             _currentRotationAngle += rotationSpeed * Time.deltaTime;
-            // Чтобы угол не рос бесконечно
             if (_currentRotationAngle >= 360f) _currentRotationAngle -= 360f;
 
-            // Задаём таймер для сканирования
             _scanTimer += Time.deltaTime;
             if (_scanTimer >= 1f / scanFrequency)
             {
@@ -86,53 +77,34 @@ namespace Assets.Scripts.Robot.Sensors.Lidars
             }
         }
 
-        /// <summary>
-        /// Выполнение сканирования:
-        ///  - берем текущий угол поворота (горизонтальный),
-        ///  - по вертикали делаем несколько лучей,
-        ///  - сохраняем результат.
-        /// </summary>
         public void PerformScan()
         {
-            // Очищаем облако перед новым сканом
             _pointCloud.Clear();
             _nearestDistance = Mathf.Infinity;
 
-            // Горизонтальный вектор направления
             Quaternion baseRotation = Quaternion.Euler(0f, _currentRotationAngle, 0f);
 
             for (int i = 0; i < verticalResolution; i++)
             {
-                // Пробегаем от -verticalFOV/2 до +verticalFOV/2
                 float vPercent = (float)i / (verticalResolution - 1);
                 float vAngle = Mathf.Lerp(-verticalFOV / 2f, verticalFOV / 2f, vPercent);
 
-                // Поворот по вертикали
                 Quaternion verticalRot = Quaternion.Euler(vAngle, 0f, 0f);
-                // Итоговая ориентация луча
                 Quaternion rayRotation = baseRotation * verticalRot;
 
                 Vector3 direction = rayRotation * Vector3.forward;
                 Vector3 origin = transform.position;
 
-                // Рейкаст
                 if (Physics.Raycast(origin, direction, out RaycastHit hit, maxDistance, layerMask))
                 {
                     float dist = hit.distance;
-                    // Заполняем структуру
                     LidarPoint pt = new LidarPoint(hit.point, dist);
                     _pointCloud.Add(pt);
 
-                    // Обновляем ближайшую дистанцию
                     if (dist < _nearestDistance)
                     {
                         _nearestDistance = dist;
                     }
-                }
-                else
-                {
-                    // Если луч не встретил объект — для облака точек можно не добавлять ничего
-                    // но вы можете добавить "точку на макс. дистанции", если нужно
                 }
             }
 
@@ -144,7 +116,6 @@ namespace Assets.Scripts.Robot.Sensors.Lidars
             enabled = isEnabled;
         }
 
-        // Для визуализации в Editor
         private void OnDrawGizmosSelected()
         {
             Gizmos.color = Color.green;

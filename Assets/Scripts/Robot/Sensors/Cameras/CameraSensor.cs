@@ -1,17 +1,14 @@
-﻿using Assets.Scripts.Garage.Interfaces;
+﻿using Assets.Scripts.Garage.Attributes;
+using Assets.Scripts.Garage.Interfaces;
 using Assets.Scripts.Robot.Api.Interfaces;
 using Assets.Scripts.Robot.Models;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace Assets.Scripts.Robot.Sensors.Cameras
 {
-    /// <summary>
-    /// Камерный сенсор для мобильного робота.
-    /// Возвращает список объектов с тегом "Element", находящихся в поле зрения и не перекрытых.
-    /// </summary>
+    [SectionName("Камера")]
     public class CameraSensor : MonoBehaviour, IApplySettings, ICameraSensor
     {
         [SerializeField][Range(1, 180)] public float fieldOfView = 60f;
@@ -36,7 +33,6 @@ namespace Assets.Scripts.Robot.Sensors.Cameras
 
         public bool isEnabled;
 
-        // --- Внутренние поля ---
         private Camera _cam;
         private float _timeSinceLastScan;
         private float _timeSinceElementsRefresh;
@@ -44,7 +40,6 @@ namespace Assets.Scripts.Robot.Sensors.Cameras
         private readonly List<IDetectedObjectInfo> _detected = new();
         private Plane[] _frustumPlanes;
 
-        /// <summary> Публично доступный список результатов последнего сканирования. </summary>
         public IReadOnlyList<IDetectedObjectInfo> DetectedObjects => _detected;
 
         private void Awake()
@@ -65,7 +60,6 @@ namespace Assets.Scripts.Robot.Sensors.Cameras
 
         private void Update()
         {
-            // Ограничиваем частоту
             if (updateRateHz > 0f && _timeSinceLastScan < 1f / updateRateHz)
             {
                 _timeSinceLastScan += Time.deltaTime;
@@ -73,7 +67,6 @@ namespace Assets.Scripts.Robot.Sensors.Cameras
             }
             _timeSinceLastScan = 0f;
 
-            // Обновляем кэш при необходимости
             if (refreshElementsEvery > 0f)
             {
                 _timeSinceElementsRefresh += Time.deltaTime;
@@ -101,14 +94,12 @@ namespace Assets.Scripts.Robot.Sensors.Cameras
             _cam.fieldOfView = fieldOfView;
         }
 
-        /// <summary> Находит все объекты с тегом "Element" в сцене. </summary>
         private void FindElements()
         {
             _elements.Clear();
             _elements.AddRange(GameObject.FindGameObjectsWithTag("Element"));
         }
 
-        /// <summary> Основная логика сканирования. </summary>
         private void Scan()
         {
             _detected.Clear();
@@ -123,17 +114,14 @@ namespace Assets.Scripts.Robot.Sensors.Cameras
                 if (col == null)
                     continue;
 
-                // Быстрый тест попадания объекта во фрустум камеры
                 if (!GeometryUtility.TestPlanesAABB(_frustumPlanes, col.bounds))
                     continue;
 
-                // Отбрасываем по расстоянию
                 var toObj = col.bounds.center - _cam.transform.position;
                 float sqrDist = toObj.sqrMagnitude;
                 if (sqrDist > maxDistance * maxDistance)
                     continue;
 
-                // Подробная проверка лучами
                 if (IsVisible(col, out var viziblePercent))
                 {
                     _detected.Add(new DetectedObjectInfo
@@ -147,10 +135,6 @@ namespace Assets.Scripts.Robot.Sensors.Cameras
             }
         }
 
-        /// <summary>
-        /// Проверяет, нет ли преград между камерой и объектом.
-        /// Для крупных объектов берём сетку samplePointsPerAxis^3.
-        /// </summary>
         private bool IsVisible(Collider col, out float viziblePercent)
         {
             Vector3 min = col.bounds.min;

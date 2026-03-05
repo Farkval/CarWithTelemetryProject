@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace Assets.Scripts.Robot.Vizualizers
@@ -8,8 +7,8 @@ namespace Assets.Scripts.Robot.Vizualizers
     public class CameraVisualizer : MonoBehaviour
     {
         [Header("Настройки визуализации")]
-        [SerializeField] GameObject rayPrefab;     // LidarRay или аналогичный префаб с LineRenderer
-        [SerializeField] float rayDuration = 0.1f; // Необязательно: можно оставить 0, если хотим непрерывную отрисовку
+        [SerializeField] GameObject rayPrefab;
+        [SerializeField] float rayDuration = 0.1f;
 
         private Camera _cam;
         private readonly List<LineRenderer> _pool = new List<LineRenderer>(4);
@@ -19,7 +18,6 @@ namespace Assets.Scripts.Robot.Vizualizers
         {
             _cam = GetComponent<Camera>();
 
-            // Создаем пул из 4 LineRenderer'ов
             for (int i = 0; i < 4; i++)
             {
                 var go = Instantiate(rayPrefab, transform);
@@ -40,7 +38,6 @@ namespace Assets.Scripts.Robot.Vizualizers
 
         void Update()
         {
-            // опционально: очищаем через rayDuration
             if (rayDuration > 0 && Time.time - _lastDrawTime > rayDuration)
                 ClearRays();
         }
@@ -55,7 +52,6 @@ namespace Assets.Scripts.Robot.Vizualizers
             if (!_cam.enabled && enabled)
                 return;
 
-            // вычисляем 4 угла фрустума на дальней плоскости
             Vector3[] farCorners = new Vector3[4];
             _cam.CalculateFrustumCorners(
                 new Rect(0, 0, 1, 1),
@@ -63,13 +59,11 @@ namespace Assets.Scripts.Robot.Vizualizers
                 Camera.MonoOrStereoscopicEye.Mono,
                 farCorners);
 
-            // переводим в мировой
             for (int i = 0; i < 4; i++)
                 farCorners[i] = transform.TransformPoint(farCorners[i]);
 
             Vector3 origin = _cam.transform.position;
 
-            // для каждого из 4-х ребер: рисуем луч из origin в corner
             for (int i = 0; i < 4; i++)
             {
                 var lr = _pool[i];

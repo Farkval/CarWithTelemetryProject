@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts.Consts;
+using Assets.Scripts.Garage.Attributes;
 using Assets.Scripts.MapEditor.Controllers;
 using Assets.Scripts.MapEditor.Models;
 using Assets.Scripts.MapEditor.Models.Enums;
@@ -9,6 +10,7 @@ using UnityEngine;
 
 namespace Assets.Scripts.Robot.Cars
 {
+    [SectionName("Мобильный робот")]
     [RequireComponent(typeof(Rigidbody))]
     public class FourWheelsCarController : MonoBehaviour, IRobotAPI
     {
@@ -20,23 +22,37 @@ namespace Assets.Scripts.Robot.Cars
         public Transform frontLeftMesh, frontRightMesh, rearLeftMesh, rearRightMesh;
 
         [Header("Car Settings")]
+        [DisplayName("Тип привода")]
         public CarDriveType driveType = CarDriveType.RearWheelDrive;
-        public float maxMotorTorque = 1500f;
+        [DisplayName("Мощность двигателя (Н·м)")]
+        public float maxMotorTorque = 1000f;
+        [DisplayName("Максимальный угол поворота колеса (°)")]
         public float maxSteeringAngle = 30f;
-        public float maxSpeed = 180f;
+        [DisplayName("Максимальная скорость (км/ч)")]
+        public float maxSpeed = 120f;
+        [DisplayName("Ограничение скорости вперед (км/ч)")]
         public float forwardSpeedLimit = 120f;
+        [DisplayName("Ограничение скорости назад (км/ч)")]
         public float reverseSpeedLimit = 60f;
+        [DisplayName("Мощность тормозной системы (Н·м)")]
         public float brakeTorque = 2000f;
 
         [Header("Suspension")]
+        [DisplayName("Длина хода подвески (м)")]
         public float suspensionDistance = 0.15f;
+        [DisplayName("Жесткость пружины подвески (Н/м)")]
         public float springStrength = 35000f;
+        [DisplayName("Демпфирование пружины Н·с/м")]
         public float springDamper = 4500f;
+        [DisplayName("Усилие против опрокидывания (Н/м)")]
         public float antiRollStrength = 5000f;
 
         [Header("Friction Settings")]
+        [DisplayName("Глобальный множитель трения колес")]
         [Range(0, 2)] public float globalFrictionMultiplier = 1f;
+        [DisplayName("Множитель продольного трения")]
         [Range(0, 2)] public float forwardFrictionMultiplier = 1f;
+        [DisplayName("Множитель поперечного трения")]
         [Range(0, 2)] public float sidewaysFrictionMultiplier = 1f;
         #endregion
 
@@ -49,10 +65,15 @@ namespace Assets.Scripts.Robot.Cars
             ManualControl = false;
         }
 
+        public void SetSteerAngle(float coef)
+        {
+            _cmdSteer = coef;
+        }
+
         public void Brake(float power = 1)
-        { 
-            _brakeCmd = Mathf.Clamp01(power); 
-            ManualControl = false; 
+        {
+            _brakeCmd = Mathf.Clamp01(power);
+            ManualControl = false;
         }
 
         public float[] WheelRPM => _rpm;
@@ -61,15 +82,16 @@ namespace Assets.Scripts.Robot.Cars
         public List<ILidar> Lidars { get; private set; } = new();
         public bool ManualControl { get; set; } = true;
         public List<ICameraSensor> Cameras { get; private set; } = new();
+        public float CurrentSpeed => _currentSpeed;
+        public float CurrentSteerAngle => _currentSteerAngle;
         #endregion
 
         #region ⭑ private state
         private Rigidbody _rb;
         private float _currentSpeed;
+        private float _currentSteerAngle;
         private readonly float[] _rpm = new float[4];
-        // cmd-каналы от скрипта
-        private float _cmdLeft, _cmdRight, _brakeCmd;
-        // friction templates
+        private float _cmdLeft, _cmdRight, _brakeCmd, _cmdSteer;
         private WheelFrictionCurve _flFwd0, _flSide0, _frFwd0, _frSide0, _rlFwd0, _rlSide0, _rrFwd0, _rrSide0;
         private MapTerrain _terrain;
 
@@ -90,13 +112,11 @@ namespace Assets.Scripts.Robot.Cars
             SetSuspension(rearLeftWheel);
             SetSuspension(rearRightWheel);
 
-            // сохранить базовые кривые трения
             _flFwd0 = frontLeftWheel.forwardFriction; _flSide0 = frontLeftWheel.sidewaysFriction;
             _frFwd0 = frontRightWheel.forwardFriction; _frSide0 = frontRightWheel.sidewaysFriction;
             _rlFwd0 = rearLeftWheel.forwardFriction; _rlSide0 = rearLeftWheel.sidewaysFriction;
             _rrFwd0 = rearRightWheel.forwardFriction; _rrSide0 = rearRightWheel.sidewaysFriction;
 
-            // собрать лидары в детях
             Lidars.AddRange(GetComponentsInChildren<ILidar>());
             Cameras.AddRange(GetComponentsInChildren<ICameraSensor>());
             _terrain = FindFirstObjectByType<MapTerrain>();
@@ -114,7 +134,6 @@ namespace Assets.Scripts.Robot.Cars
 
         void FixedUpdate()
         {
-            // источники управления
             float throttleL, throttleR, steerInput;
             if (ManualControl)
             {
@@ -122,14 +141,15 @@ namespace Assets.Scripts.Robot.Cars
                 float h = Input.GetAxis("Horizontal");
                 throttleL = throttleR = v;
                 steerInput = h;
-                if (Input.GetKey(KeyCode.Space)) 
+                if (Input.GetKey(KeyCode.Space))
                     _brakeCmd = 1;
             }
             else
             {
                 throttleL = _cmdLeft;
                 throttleR = _cmdRight;
-                steerInput = Mathf.Clamp((_cmdRight - _cmdLeft), -1, 1);
+                steerInput = _cmdSteer;
+                //steerInput = Mathf.Clamp((_cmdRight - _cmdLeft), -1, 1);
             }
 
             ApplySteering(steerInput);
@@ -181,6 +201,7 @@ namespace Assets.Scripts.Robot.Cars
             float angle = maxSteeringAngle * Mathf.Clamp(input, -1, 1);
             frontLeftWheel.steerAngle = angle;
             frontRightWheel.steerAngle = angle;
+            _currentSteerAngle = angle;
         }
 
         void ApplyDrive(float left, float right)
@@ -204,15 +225,18 @@ namespace Assets.Scripts.Robot.Cars
             {
                 case CarDriveType.FrontWheelDrive:
                     frontLeftWheel.motorTorque = tqL;
-                    frontRightWheel.motorTorque = tqR; break;
+                    frontRightWheel.motorTorque = tqR;
+                    break;
                 case CarDriveType.RearWheelDrive:
                     rearLeftWheel.motorTorque = tqL;
-                    rearRightWheel.motorTorque = tqR; break;
+                    rearRightWheel.motorTorque = tqR;
+                    break;
                 case CarDriveType.AllWheelDrive:
                     frontLeftWheel.motorTorque = tqL;
                     frontRightWheel.motorTorque = tqR;
                     rearLeftWheel.motorTorque = tqL;
-                    rearRightWheel.motorTorque = tqR; break;
+                    rearRightWheel.motorTorque = tqR;
+                    break;
             }
         }
 
@@ -222,7 +246,7 @@ namespace Assets.Scripts.Robot.Cars
             frontRightWheel.brakeTorque = tq;
             rearLeftWheel.brakeTorque = tq;
             rearRightWheel.brakeTorque = tq;
-            if (tq > 0)                                 // глушим движок
+            if (tq > 0)
             {
                 frontLeftWheel.motorTorque = 0;
                 frontRightWheel.motorTorque = 0;
@@ -239,10 +263,10 @@ namespace Assets.Scripts.Robot.Cars
 
         void CaptureRPM()
         {
-            _rpm[0] = frontLeftWheel.rpm;
-            _rpm[1] = frontRightWheel.rpm;
-            _rpm[2] = rearLeftWheel.rpm;
-            _rpm[3] = rearRightWheel.rpm;
+            _rpm[0] += frontLeftWheel.rpm;
+            _rpm[1] += frontRightWheel.rpm;
+            _rpm[2] += rearLeftWheel.rpm;
+            _rpm[3] += rearRightWheel.rpm;
         }
         #endregion
 
@@ -262,7 +286,6 @@ namespace Assets.Scripts.Robot.Cars
             SurfaceType st = DetectSurface(wc);
             (float kFwd, float kSide) = SurfaceFrictionConst.SurfaceFriction.TryGetValue(st, out var k) ? k : (1, 1);
 
-            // глобальные мультипликаторы пользователя
             kFwd *= globalFrictionMultiplier * forwardFrictionMultiplier;
             kSide *= globalFrictionMultiplier * sidewaysFrictionMultiplier;
 
@@ -275,19 +298,15 @@ namespace Assets.Scripts.Robot.Cars
 
         SurfaceType DetectSurface(WheelCollider wc)
         {
-            // Берём точку чуть выше колеса, чтобы гарантированно выйти за пределы коллайдера диска
             Vector3 origin = wc.transform.position + Vector3.up * .1f;
 
-            // Стреляем вниз по слоям, где есть дорога/мост/земля
             if (Physics.Raycast(origin, Vector3.down, out var hit, 5f, _elementLayerMask))
             {
-                // 1) Если объект имеет компонент SurfaceOverride – используем его
                 var ov = hit.collider.GetComponent<SurfaceOverride>();
-                if (ov) 
+                if (ov)
                     return ov.surface;
             }
 
-            // ничего не попали  →  берём карту Terrain как fallback
             return _terrain.SurfaceAt(wc.transform.position);
         }
 

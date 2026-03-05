@@ -1,6 +1,5 @@
 ﻿namespace Assets.Scripts.MapEditor.Models.Enums
 {
-    // порядок индексов важен — мы сериализуем в byte[]
     public enum SurfaceType : byte
     {
         Grass = 0,

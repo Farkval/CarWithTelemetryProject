@@ -9,5 +9,7 @@ namespace Assets.Scripts.Consts
             "ModifySurfaceToggle",
             "ModifyTerrainToggle",
         };
+
+        public static readonly string RobotCamera = "ThirdPersonCamera";
     }
 }

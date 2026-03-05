@@ -4,6 +4,7 @@ using Assets.Scripts.Robot.Sensors.Cameras;
 using Assets.Scripts.Robot.Sensors.Lidars;
 using Assets.Scripts.Robot.Vizualizers;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -29,7 +30,6 @@ namespace Assets.Scripts.Garage
 
         void Start()
         {
-            // Строим список кнопок. При клике вызывается OnVehicleSelected(prefab).
             listUI.Build(OnVehicleSelected);
             lidarVizalizerToggle.onValueChanged.AddListener(UpdateLidarVisualizersEnabled);
             cameraVizalizerToggle.onValueChanged.AddListener(UpdateCameraVisualizersEnabled);
@@ -37,7 +37,6 @@ namespace Assets.Scripts.Garage
 
         void OnVehicleSelected(GameObject prefab)
         {
-            // Удаляем старый экземпляр, если был
             if (_currentInstance != null)
             {
                 Destroy(_currentInstance);
@@ -48,7 +47,6 @@ namespace Assets.Scripts.Garage
 
             _currentPrefab = prefab;
 
-            // Спавним новый экземпляр машины
             _currentInstance = Instantiate(prefab, spawnPoint.position + Vector3.up * 1, spawnPoint.rotation);
 
             _currentLidarVisualizers = new List<LidarVisualizer>(
@@ -62,32 +60,24 @@ namespace Assets.Scripts.Garage
 
             ChangeCarLogicEnabled(false);
 
-            // Собираем список компонентов ИМЕННО с экземпляра
             _currentComponents = GatherComponents(_currentInstance);
 
-            // Загружаем сохранённые настройки (если есть)
             VehicleLoader.LoadSettings(_currentPrefab.name, _currentComponents);
 
-            // Строим UI по этим компонентам
             inspectorUI.BuildFor(_currentComponents);
         }
 
         private void ChangeCarLogicEnabled(bool enabled)
         {
-            var carCtrl1 = _currentInstance.GetComponent<FourWheelsCarController>();
+            var carCtrl1 = _currentInstance.GetComponentsInChildren<FourWheelsCarController>().FirstOrDefault();
             if (carCtrl1 != null)
                 carCtrl1.enabled = enabled;
-
-            var carCtrl2 = _currentInstance.GetComponent<YandexRoverController>();
-            if (carCtrl2 != null)
-                carCtrl2.enabled = enabled;
         }
 
         public void OnSavePressed()
         {
             if (_currentInstance == null) return;
 
-            // Включаем контроллер при сохранении, если нужно
             ChangeCarLogicEnabled(true);
 
             VehicleLoader.SaveSettings(_currentPrefab.name, _currentComponents);
@@ -104,11 +94,9 @@ namespace Assets.Scripts.Garage
         {
             if (_currentPrefab == null) return;
 
-            // Удаляем сохранённое для этого префаба
             PlayerPrefs.DeleteKey($"VehicleData_{_currentPrefab.name}");
             PlayerPrefs.Save();
 
-            // Респавним чистый экземпляр
             OnVehicleSelected(_currentPrefab);
         }
 
@@ -152,11 +140,10 @@ namespace Assets.Scripts.Garage
         {
             var list = new List<Component>();
 
-            var carCtrl1 = car.GetComponent<FourWheelsCarController>();
+            var carCtrl1 = car.GetComponentsInChildren<FourWheelsCarController>().FirstOrDefault();
+            var carCtrl2 = car.GetComponentsInChildren<TrackedTankController>().FirstOrDefault();
             if (carCtrl1 != null) 
                 list.Add(carCtrl1);
-
-            var carCtrl2 = car.GetComponent<YandexRoverController>();
             if (carCtrl2 != null) 
                 list.Add(carCtrl2);
 

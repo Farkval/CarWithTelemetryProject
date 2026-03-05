@@ -9,13 +9,8 @@ using UnityEngine;
 
 namespace Assets.Scripts.MapEditor.Controllers
 {
-    /// <summary>
-    /// Сохраняет и загружает карту в JSON через диалоги Unity (EditorUtility).
-    /// Для билдов можно подключить NativeFilePicker или аналогичный плагин.
-    /// </summary>
     public class MapSerializer : MonoBehaviour
     {
-        // Assets/Scripts/MapEditor/Controllers/MapSerializer.cs
         public void Save(List<PlacedObject> objs, MapSize size, TimeOfDay tod)
         {
             var path = FileDialog.ShowSave("JSON файлы (*.json)|*.json", "Сохранить карту");
@@ -23,16 +18,14 @@ namespace Assets.Scripts.MapEditor.Controllers
                 return;
 
             if (string.IsNullOrEmpty(path))
-                return;      // окно вызываем ОДИН раз
+                return;
 
             var data = new MapData(objs, size, tod);
             var terr = FindFirstObjectByType<MapTerrain>();
 
-            // meta
-            data.heightRes = terr.HeightResolution;     // добавьте геттер-свойства
+            data.heightRes = terr.HeightResolution;
             data.surfaceRes = terr.SurfaceResolution;
 
-            // сами массивы
             data.heights = terr.ExportHeights();
             data.surfaces = terr.ExportSurfaces();
 

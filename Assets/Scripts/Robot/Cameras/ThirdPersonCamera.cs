@@ -6,22 +6,22 @@ namespace Assets.Scripts.Robot.Cameras
     public class ThirdPersonCamera : MonoBehaviour
     {
         [Header("Target to follow")]
-        public Transform target;          // Ссылка на игрока
+        public Transform target;         
 
         [Header("Distance and height")]
-        public float distance = 5.0f;     // Расстояние от камеры до игрока
-        public float height = 1.5f;       // Вертикальный сдвиг камеры относительно точки слежения
+        public float distance = 5.0f;    
+        public float height = 1.5f;      
 
         [Header("Mouse sensitivity")]
-        public float xSpeed = 70.0f;     // Чувствительность вращения по горизонтали
-        public float ySpeed = 70.0f;     // Чувствительность вращения по вертикали
+        public float xSpeed = 70.0f;     
+        public float ySpeed = 70.0f;     
 
         [Header("Vertical angle limits")]
-        public float yMinLimit = -20f;    // Минимальный угол (в градусах)
-        public float yMaxLimit = 80f;     // Максимальный угол (в градусах)
+        public float yMinLimit = -20f;   
+        public float yMaxLimit = 80f;    
 
-        private float x = 0.0f;           // Текущий угол по горизонтали
-        private float y = 0.0f;           // Текущий угол по вертикали
+        private float x = 0.0f;          
+        private float y = 0.0f;          
 
         void Start()
         {
@@ -46,7 +46,6 @@ namespace Assets.Scripts.Robot.Cameras
                 y = ClampAngle(y, yMinLimit, yMaxLimit);
             }
 
-            // Вычисляем новую ориентацию и позицию камеры
             Quaternion rotation = Quaternion.Euler(y, x, 0);
             Vector3 targetOffset = new Vector3(0, height, 0);
             Vector3 position = rotation * new Vector3(0.0f, 0.0f, -distance)

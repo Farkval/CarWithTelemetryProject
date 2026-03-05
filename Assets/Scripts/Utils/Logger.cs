@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Assets.Scripts.Utils
 {
     public class Logger : MonoBehaviour
     {
-        // Единственный экземпляр
         private static Logger _instance;
         public static Logger Instance
         {
@@ -14,11 +14,9 @@ namespace Assets.Scripts.Utils
             {
                 if (_instance == null)
                 {
-                    // Попытка найти в сцене
                     _instance = FindFirstObjectByType<Logger>();
                     if (_instance == null)
                     {
-                        // Если нет — создаём новый GameObject
                         var go = new GameObject("Logger");
                         _instance = go.AddComponent<Logger>();
                     }
@@ -28,13 +26,12 @@ namespace Assets.Scripts.Utils
             }
         }
 
-        // Событие на добавление лога
         public event Action<string> OnLogAdded;
+        public event Action<string> OnGameLogAdded;
 
-        // Внутренний буфер логов
         private readonly List<string> _logs = new List<string>();
+        private readonly List<string> _gameLogs = new List<string>();
 
-        // Максимальное число строк (необязательно)
         [SerializeField] private int maxLogs = 1000;
 
         private bool _initialized;
@@ -53,49 +50,51 @@ namespace Assets.Scripts.Utils
             Initialize();
         }
 
-        /// <summary>
-        /// Добавить свой лог.
-        /// </summary>
-        public static void Log(string message)
+        public static void Log(string message, bool isGameLog = false)
         {
-            Instance.AddLog("[LOG] " + message);
+            Instance.AddLog("[LOG] " + message, isGameLog);
         }
 
-        /// <summary>
-        /// Добавить свой warning.
-        /// </summary>
-        public static void Warning(string message)
+        public static void Warning(string message, bool isGameLog = false)
         {
-            Instance.AddLog("[WARN] " + message);
+            Instance.AddLog("[WARN] " + message, isGameLog);
         }
 
-        /// <summary>
-        /// Добавить свою ошибку.
-        /// </summary>
-        public static void Error(string message)
+        public static void Error(string message, bool isGameLog = false)
         {
-            Instance.AddLog("[ERROR] " + message);
+            Instance.AddLog("[ERROR] " + message, isGameLog);
         }
 
-        private void AddLog(string formatted)
+        private void AddLog(string formatted, bool isGameLog = false)
         {
-            // Ограничиваем длину буфера
-            if (_logs.Count >= maxLogs)
-                _logs.RemoveAt(0);
-
 #if UNITY_EDITOR
             Debug.Log(formatted);
 #endif
-            _logs.Add(formatted);
-            OnLogAdded?.Invoke(formatted);
+            
+            if (isGameLog)
+            {
+                if (_gameLogs.LastOrDefault()?.Equals(formatted) == true)
+                    return;
+
+                if (_gameLogs.Count >= maxLogs)
+                    _gameLogs.RemoveAt(0);
+                _gameLogs.Add(formatted);
+                OnGameLogAdded?.Invoke(formatted);
+            }
+            else
+            {
+                if (_logs.Count >= maxLogs)
+                    _logs.RemoveAt(0);
+                _logs.Add(formatted);
+                OnLogAdded?.Invoke(formatted);
+            }
         }
 
-        /// <summary>
-        /// Получить весь буфер лога (копия).
-        /// </summary>
-        public string[] GetAllLogs()
+        public string[] GetAllLogs(bool isGameLog = false)
         {
-            return _logs.ToArray();
+            return isGameLog 
+                ? _gameLogs.ToArray() 
+                : _logs.ToArray();
         }
     }
 }

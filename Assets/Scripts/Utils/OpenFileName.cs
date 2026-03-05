@@ -93,16 +93,12 @@ namespace Assets.Scripts.Utils
             }
         }
 
-        // ======== вспомогательные методы ========
-
-        // Разбор результата (multi-select)
         private static string[] ParseFileNames(string raw)
         {
             var parts = raw.Split(new[] { '\0' }, StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length == 0) return null;
             if (parts.Length == 1) return new[] { parts[0] };
 
-            // при множественном выборе первый элемент — директория, дальше — имена файлов
             var dir = parts[0];
             var files = new string[parts.Length - 1];
             for (int i = 1; i < parts.Length; i++)
@@ -110,7 +106,6 @@ namespace Assets.Scripts.Utils
             return files;
         }
 
-        // Конвертирует .NET-строку фильтра в формат COMDLG
         private static string ConvertFilter(string filter)
         {
             // "desc1|*.ext1|desc2|*.ext2" → "desc1\0*.ext1\0desc2\0*.ext2\0\0"
@@ -118,7 +113,6 @@ namespace Assets.Scripts.Utils
             return string.Join("\0", parts) + "\0\0";
         }
 
-        // Извлекаем первое расширение без точки
         private static string ExtractDefaultExt(string filter)
         {
             var parts = filter.Split('|');
@@ -163,7 +157,6 @@ namespace Assets.Scripts.Utils
         public int reservedInt = 0;
         public int flagsEx = 0;
 
-        // Общие флаги
         public const int OFN_EXPLORER = 0x00080000;
         public const int OFN_FILEMUSTEXIST = 0x00001000;
         public const int OFN_PATHMUSTEXIST = 0x00000800;

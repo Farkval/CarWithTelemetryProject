@@ -8,7 +8,7 @@ namespace Assets.Scripts.MapEditor.Controllers
     {
         readonly int _capacity;
         readonly List<IUndoableAction> _history = new();
-        int _cursor = -1;               // индекс последней выполненной операции
+        int _cursor = -1;
 
         public UndoRedoController(int capacity = 100)
         {
@@ -17,11 +17,9 @@ namespace Assets.Scripts.MapEditor.Controllers
 
         public void AddAction(IUndoableAction action)
         {
-            // отбрасываем «красную часть» истории, если сделали новую операцию
             if (_cursor < _history.Count - 1)
                 _history.RemoveRange(_cursor + 1, _history.Count - _cursor - 1);
 
-            // ограничиваем вместимость
             if (_history.Count == _capacity)
                 _history.RemoveAt(0);
             else
@@ -44,7 +42,6 @@ namespace Assets.Scripts.MapEditor.Controllers
             return act.Redo();
         }
 
-        /* ───────── служебное ───────── */
         public void Clear()
         {
             _history.Clear();

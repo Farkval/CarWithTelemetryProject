@@ -17,7 +17,7 @@ namespace Assets.Scripts.MapEditor.Controllers
                  " (4 даст минимальный мазок 0.25 м)")]
         [Min(1)] public int surfaceSubDiv = 4;
 
-        [SerializeField] float cellSize = 1f;                      // базовый метр
+        [SerializeField] float cellSize = 1f;
 
         [Header("Surface Colors (vertex)")]
         public Color grassColor = Color.green;
@@ -26,18 +26,14 @@ namespace Assets.Scripts.MapEditor.Controllers
         public Color waterColor = new(.10f, .30f, .80f);
         public Color iceColor = new(.80f, .90f, 1f);
 
-        // ---------- runtime-поля ----------
-        // высоты
-        private int _heRes;      // узлов по стороне
-        private float _heCell;     // шаг по высоте  (м)
+        private int _heRes;
+        private float _heCell;
         private float[,] _heights;
 
-        // покрытие
-        private int _suRes;      // плиток по стороне
-        private float _suCell;     // шаг по покрытию (м)
+        private int _suRes;
+        private float _suCell;
         private SurfaceType[,] _surface;
 
-        // визуализация
         Mesh _mesh;
         Color[] _vertColors;
 
@@ -46,15 +42,12 @@ namespace Assets.Scripts.MapEditor.Controllers
         public int SurfaceResolution => _suRes;
         public float MapHalfWorld => _heRes * _heCell * 0.5f;
 
-        // ------------------------------------------------------------ public API
         public void Init(int meters)
         {
-            // высоты
             _heRes = meters * heightSubDiv;
             _heCell = cellSize / heightSubDiv;
             _heights = new float[_heRes + 1, _heRes + 1];
 
-            // покрытие
             _suRes = meters * surfaceSubDiv;
             _suCell = cellSize / surfaceSubDiv;
             _surface = new SurfaceType[_suRes, _suRes];
@@ -67,7 +60,7 @@ namespace Assets.Scripts.MapEditor.Controllers
         }
 
         #region ─── helpers ──────────────────────────────────────────────────────────
-        public bool InsideXZ(Vector3 p)                       // находится в границах?
+        public bool InsideXZ(Vector3 p)
         {
             float h = MapHalfWorld;
             return p.x >= -h && p.x <= h && p.z >= -h && p.z <= h;
@@ -150,7 +143,7 @@ namespace Assets.Scripts.MapEditor.Controllers
                 {
                     int px = cx + ix, pz = cz + iz;
                     if (px < 0 || pz < 0 || px >= _suRes || pz >= _suRes) continue;
-                    if (ix * ix + iz * iz > rad * rad) continue;        // круг
+                    if (ix * ix + iz * iz > rad * rad) continue;
                     _surface[px, pz] = type;
                 }
             ApplyVertexColors();

@@ -4,7 +4,6 @@ namespace Assets.Scripts.MapEditor.Actions
 {
     public class DeleteAction : IUndoableAction
     {
-
         private readonly PlacedObject _placedObject;
 
         public DeleteAction(PlacedObject placedObject)

@@ -9,10 +9,6 @@ using UnityEngine;
 
 namespace Assets.Scripts.Robot.Sensors.Lidars
 {
-    /// <summary>
-    /// 2) Flash Lidar — одноимпульсный \"моментальный снимок\".
-    ///    При каждом скане мы посылаем N x M лучей в заданном поле зрения.
-    /// </summary>
     [SectionName("Импульсный лидар")]
     public class FlashLidar : MonoBehaviour, ILidarSensor, IApplySettings
     {
@@ -31,8 +27,8 @@ namespace Assets.Scripts.Robot.Sensors.Lidars
         [DisplayName("Кол-во лучей по вертикали")]
         public int verticalResolution = 16;
 
-        [Tooltip("Слой, по которому стреляют лучи.")]
-        public LayerMask layerMask = ~0;
+        [Tooltip("Слой, по которому стреляют лучи.")] 
+        public LayerMask layerMask = ~(1 << 9);
 
         [Tooltip("Частота кадров/сканов в секунду.")]
         [DisplayName("Частота сканов в едиинцу времени")]
@@ -49,6 +45,8 @@ namespace Assets.Scripts.Robot.Sensors.Lidars
         private float _scanTimer = 0f;
 
         public List<ILidarPoint> PointCloud => _pointCloud;
+
+        public float Nearest => _nearestDistance;
 
         public void Initialize()
         {
@@ -80,9 +78,6 @@ namespace Assets.Scripts.Robot.Sensors.Lidars
             }
         }
 
-        /// <summary>
-        /// Одномоментный \"снимок\": заполняем всю сетку лучей по вертикали и горизонтали.
-        /// </summary>
         public void PerformScan()
         {
             _pointCloud.Clear();
@@ -92,7 +87,6 @@ namespace Assets.Scripts.Robot.Sensors.Lidars
 
             for (int h = 0; h < horizontalResolution; h++)
             {
-                // процент по горизонтали от -hFOV/2 до +hFOV/2
                 float hPercent = (float)h / (horizontalResolution - 1);
                 float hAngle = Mathf.Lerp(-horizontalFOV / 2f, horizontalFOV / 2f, hPercent);
 
@@ -101,7 +95,6 @@ namespace Assets.Scripts.Robot.Sensors.Lidars
                     float vPercent = (float)v / (verticalResolution - 1);
                     float vAngle = Mathf.Lerp(-verticalFOV / 2f, verticalFOV / 2f, vPercent);
 
-                    // Формируем итоговый поворот
                     Quaternion rotation = Quaternion.Euler(vAngle, hAngle, 0f);
                     Vector3 direction = transform.rotation * rotation * Vector3.forward;
 

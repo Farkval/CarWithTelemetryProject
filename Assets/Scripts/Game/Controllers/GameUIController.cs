@@ -14,8 +14,6 @@ namespace Assets.Scripts.Game.Controllers
 {
     public class GameUIController : MonoBehaviour
     {
-        /* -------------  Ссылки из инспектора  ------------- */
-
         [Header("Root")]
         [SerializeField] private Toggle settingsToggle;
 
@@ -50,20 +48,12 @@ namespace Assets.Scripts.Game.Controllers
         [Header("System")]
         [SerializeField] private Button exitButton;
 
-        /* -------------  Поля  ------------- */
-
         private readonly List<GameObject> _uiElements = new();
         private GameController _game;
-
-        /* --------  Быстрые геттеры индексов («-1», если placeholder)  -------- */
 
         private int CurrentCarIndex => selectCarDropdown.value - 1;
         private int CurrentSpawnPointIndex => selectSpawnPointsDropdown.value - 1;
         private int CurrentPlayerIndex => selectPlayerDropdown.value - 1;
-
-        /* =================================================================== */
-        /*                               INIT                                  */
-        /* =================================================================== */
 
         public void InitializeCars(IEnumerable<GameObject> carPrefabs)
         {
@@ -86,7 +76,6 @@ namespace Assets.Scripts.Game.Controllers
             CacheUIElements();
             WireEvents();
 
-            // Показ/скрытие панели настроек
             ShowUI(settingsToggle.isOn);
 
             timeText.gameObject.SetActive(false);
@@ -117,26 +106,21 @@ namespace Assets.Scripts.Game.Controllers
         {
             settingsToggle.onValueChanged.AddListener(ShowUI);
 
-            /* Players */
             selectPlayerDropdown.onValueChanged.AddListener(OnPlayerChanged);
             addPlayerButton.onClick.AddListener(AddNewPlayer);
             deletePlayerButton.onClick.AddListener(DeletePlayer);
 
-            /* Robot */
             selectCarDropdown.onValueChanged.AddListener(OnCarSelected);
             selectSpawnPointsDropdown.onValueChanged.AddListener(OnSpawnPointSelected);
             loadRobotButton.onClick.AddListener(OnLoadRobotPressed);
 
-            /* Toggles */
             lidarVisualizersEnabledToggle.onValueChanged.AddListener(OnUpdateLidarVisualizers);
             cameraVisualizersEnabledToggle.onValueChanged.AddListener(OnUpdateCameraVisualizers);
             carManualControlToggle.onValueChanged.AddListener(OnUpdateManualControl);
 
-            /* Script / Map */
             selectScriptInput.onSelect.AddListener(_ => OnSelectScriptInputPressed());
             selectMapInput.onSelect.AddListener(_ => OnSelectMapInputPressed());
 
-            /* Console / System */
             consoleEnabledToggle.onValueChanged.AddListener(consolePanel.SetActive);
             consolePanel.SetActive(consoleEnabledToggle.isOn);
             startButton.onClick.AddListener(OnStart);
@@ -144,10 +128,6 @@ namespace Assets.Scripts.Game.Controllers
             exitButton.onClick.AddListener(() =>
                 SceneManager.LoadScene(SceneNameConst.MAIN_MENU_SCENE));
         }
-
-        /* =================================================================== */
-        /*                         Игроки                                       */
-        /* =================================================================== */
 
         private void AddNewPlayer()
         {
@@ -159,7 +139,6 @@ namespace Assets.Scripts.Game.Controllers
             deletePlayerButton.interactable = true;
 
             selectPlayerDropdown.options.Add(new TMP_Dropdown.OptionData(name));
-            // индекс первого игрока = 1 (0 - placeholder)
             selectPlayerDropdown.SetValueWithoutNotify(selectPlayerDropdown.options.Count - 1);
             OnPlayerChanged(0);
         }
@@ -178,7 +157,6 @@ namespace Assets.Scripts.Game.Controllers
             selectPlayerDropdown.options.RemoveAt(CurrentPlayerIndex + 1);
             selectPlayerDropdown.SetValueWithoutNotify(0);
 
-            // Обновить точки спавна (освободились)
             UpdateSpawnPointsDropdown();
             OnPlayerChanged(0);
         }
@@ -190,7 +168,6 @@ namespace Assets.Scripts.Game.Controllers
             selectSpawnPointsDropdown.interactable = playerSelected;
             selectCarDropdown.interactable = playerSelected;
 
-            /* ----------  Синхронизация выбранного игрока с UI  ---------- */
             if (!playerSelected)
             {
                 selectSpawnPointsDropdown.SetValueWithoutNotify(0);
@@ -208,7 +185,6 @@ namespace Assets.Scripts.Game.Controllers
                 selectSpawnPointsDropdown.SetValueWithoutNotify(player.HaveSpawnPoint ? player.SelectedSpawnPointIndex + 1 : 0);
             }
 
-            // Поле скрипта доступно только если машина уже загружена
             selectScriptInput.interactable = playerSelected && player.Spawned;
 
             _game.DisableCamerasForOtherCars(player);
@@ -216,10 +192,6 @@ namespace Assets.Scripts.Game.Controllers
             // Синхронизируем тогглы
             SyncToggles(playerSelected ? player : null);
         }
-
-        /* =================================================================== */
-        /*                         Робот / Машина                               */
-        /* =================================================================== */
 
         private void OnCarSelected(int index)
         {
@@ -246,7 +218,6 @@ namespace Assets.Scripts.Game.Controllers
 
             loadRobotButton.interactable = carSelected && spawnPointSelected;
 
-            // Заблокируем уже занятый спаун-поинт
             if (spawn?.PlayerSpawned == true)
                 selectSpawnPointsDropdown.SetValueWithoutNotify(0);
         }
@@ -260,7 +231,6 @@ namespace Assets.Scripts.Game.Controllers
 
             player.LoadCar(carPrefab, sp, CurrentSpawnPointIndex, CurrentCarIndex);
 
-            // Текущие значения тогглов ➜ в машину
             player.UpdateCameraVisualizersEnabled(cameraVisualizersEnabledToggle.isOn);
             player.UpdateLidarVisualizersEnabled(lidarVisualizersEnabledToggle.isOn);
             player.UpdateCarManualControl(carManualControlToggle.isOn);
@@ -272,10 +242,6 @@ namespace Assets.Scripts.Game.Controllers
 
             startButton.interactable = true;
         }
-
-        /* =================================================================== */
-        /*                         Файлы / Диалоги                              */
-        /* =================================================================== */
 
         private void OnSelectMapInputPressed()
         {
@@ -321,19 +287,16 @@ namespace Assets.Scripts.Game.Controllers
 
         private void OnSelectScriptInputPressed()
         {
+            Debug.Log("OnSelectScriptInputPressed");
             if (!_game.TryGetPlayer(CurrentPlayerIndex, out var player)) return;
 
             string path = FileDialog.ShowOpen("Файлы (*.py)|*.py", "Выбрать скрипт")?.FirstOrDefault();
             if (string.IsNullOrEmpty(path) || !File.Exists(path)) return;
 
+            Debug.Log("SetScript");
             player.SetScript(path);
             selectScriptInput.text = player.ScriptFileName;
         }
-
-        /* =================================================================== */
-        /*                         Тогглы                                       */
-        /* =================================================================== */
-
         private void OnUpdateLidarVisualizers(bool value)
         {
             if (_game.TryGetPlayer(CurrentPlayerIndex, out var player))
@@ -360,9 +323,6 @@ namespace Assets.Scripts.Game.Controllers
             cameraVisualizersEnabledToggle.SetIsOnWithoutNotify(player?.VisualizeCameras == true);
             carManualControlToggle.SetIsOnWithoutNotify(player?.ManualControl == true);
         }
-
-        /* =================================================================== */
-
         private void ShowUI(bool show)
         {
             foreach (var go in _uiElements)

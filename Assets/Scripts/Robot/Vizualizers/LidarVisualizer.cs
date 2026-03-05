@@ -9,7 +9,7 @@ namespace Assets.Scripts.Robot.Vizualizers
     public class LidarVisualizer : MonoBehaviour
     {
         [Header("Настройки визуализации")]
-        [SerializeField] GameObject rayPrefab;   // префаб с LineRenderer
+        [SerializeField] GameObject rayPrefab;
         [SerializeField] float rayDuration = 0.1f;
 
         class SensorContext
@@ -22,7 +22,6 @@ namespace Assets.Scripts.Robot.Vizualizers
 
         void Awake()
         {
-            // Находим все ILidarSensor в потомках и подписываемся на их событие
             foreach (var mb in GetComponentsInChildren<MonoBehaviour>())
             {
                 if (mb is ILidarSensor sensor)
@@ -36,14 +35,12 @@ namespace Assets.Scripts.Robot.Vizualizers
 
         void OnDestroy()
         {
-            // Отписка
             foreach (var ctx in _contexts)
                 ctx.Sensor.OnScanComplete -= points => OnScan(ctx, points);
         }
 
         void OnDisable()
         {
-            // Если визуализатор выключают — сразу чистим всё
             foreach (var ctx in _contexts)
                 Clear(ctx);
         }
@@ -54,7 +51,6 @@ namespace Assets.Scripts.Robot.Vizualizers
                 return;
 
             int needed = cloud.Count;
-            // Расширяем пул, если нужно
             while (ctx.Pool.Count < needed)
             {
                 var go = Instantiate(rayPrefab, (ctx.Sensor as MonoBehaviour).transform);
@@ -65,7 +61,6 @@ namespace Assets.Scripts.Robot.Vizualizers
 
             var origin = (ctx.Sensor as MonoBehaviour).transform.position;
 
-            // Рисуем лучи
             for (int i = 0; i < needed; i++)
             {
                 var pt = cloud[i];
@@ -75,7 +70,7 @@ namespace Assets.Scripts.Robot.Vizualizers
                 lr.SetPosition(0, origin);
                 lr.SetPosition(1, pt.WorldPosition);
 
-                // Если хотите градиент по дистанции:
+                // градиент по дистанции:
                 // float t = Mathf.Clamp01(pt.Distance / maxDistance);
                 // Color c = Color.Lerp(Color.red, Color.blue, t);
                 // lr.startColor = lr.endColor = c;
@@ -83,11 +78,9 @@ namespace Assets.Scripts.Robot.Vizualizers
                 lr.gameObject.SetActive(true);
             }
 
-            // Скрываем лишние
             for (int i = needed; i < ctx.Pool.Count; i++)
                 ctx.Pool[i].gameObject.SetActive(false);
 
-            // Запланировать полное очищение через rayDuration
             CancelInvoke(nameof(ClearAll));
             Invoke(nameof(ClearAll), rayDuration);
         }

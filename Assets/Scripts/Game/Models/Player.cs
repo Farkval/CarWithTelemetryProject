@@ -1,5 +1,7 @@
-﻿using Assets.Scripts.Garage;
+﻿using Assets.Scripts.Consts;
+using Assets.Scripts.Garage;
 using Assets.Scripts.Robot.Api.Interfaces;
+using Assets.Scripts.Robot.Api.Python;
 using Assets.Scripts.Robot.Vizualizers;
 using System;
 using System.Collections.Generic;
@@ -11,18 +13,15 @@ namespace Assets.Scripts.Game.Models
 {
     public class Player : MonoBehaviour
     {
-        /* ---------------------  Components / runtime  --------------------- */
-
         private GameObject _carPrefab;
         private GameObject _carInstance;
         private List<LidarVisualizer> _lidarVisualizers;
         private List<CameraVisualizer> _cameraVisualizers;
         private IRobotAPI _robotAPI;
-        private PythonScriptRunner _pythonRunner;
+        private PythonNetRunner _pythonRunner;
         private SpawnPoint _spawnPoint;
         private Camera _camera;
-
-        /* --------------------------  State  ------------------------------- */
+        private string _scriptFilePath;
 
         public string Name { get; private set; }
 
@@ -37,21 +36,17 @@ namespace Assets.Scripts.Game.Models
         public bool HaveSpawnPoint => _spawnPoint != null;
         public bool Spawned => _carInstance != null;
 
-        public int SelectedSpawnPointIndex { get; private set; } // 0-based
-        public int SelectedCarIndex { get; private set; } // 0-based
-
-        /* =================================================================== */
+        public int SelectedSpawnPointIndex { get; private set; }
+        public int SelectedCarIndex { get; private set; }
+        public Camera ThirdPersonCamera => _camera;
 
         public void Initialize(int index) => Name = $"Игрок {index}";
-
-        /* =================================================================== */
-        /*                       Загрузка / спавн машины                       */
-        /* =================================================================== */
 
         public void LoadCar(GameObject prefab, SpawnPoint sp, int spawnIdx, int carIdx)
         {
             // Сносим предыдущую
-            if (_carInstance != null) Destroy(_carInstance);
+            if (_carInstance != null) 
+                Destroy(_carInstance);
             _spawnPoint?.ClearSpawn();
 
             _carPrefab = prefab;
@@ -69,11 +64,13 @@ namespace Assets.Scripts.Game.Models
 
             _carInstance = Instantiate(
                 _carPrefab,
-                _spawnPoint.SpawnPosition + Vector3.up, // чуть над землей
+                _spawnPoint.SpawnPosition + Vector3.up,
                 _spawnPoint.SpawnRotation);
 
             VehicleLoader.LoadSettings(_carPrefab.name,
                 GarageController.GatherComponents(_carInstance));
+
+            _carInstance.GetComponentInParent<PlayerIdentifier>().Name = Name;
 
             CacheComponents();
         }
@@ -83,14 +80,22 @@ namespace Assets.Scripts.Game.Models
             _lidarVisualizers = _carInstance.GetComponentsInChildren<LidarVisualizer>().ToList();
             _cameraVisualizers = _carInstance.GetComponentsInChildren<CameraVisualizer>().ToList();
             _robotAPI = _carInstance.GetComponentInChildren<IRobotAPI>();
-            _pythonRunner = _carInstance.GetComponentInChildren<PythonScriptRunner>();
-            _camera = _carInstance.GetComponentInChildren<Camera>();
+            _pythonRunner = _carInstance.GetComponentInChildren<PythonNetRunner>();
+
+            var cameras = _carInstance.GetComponentsInChildren<Camera>();
+            foreach (var c in cameras)
+            {
+                if (c.gameObject.name == GameObjectNameConst.RobotCamera)
+                {
+                    c.depth = 1;
+                    _camera = c;
+                }
+                else
+                {
+                    c.depth = 0;
+                }
+            }
         }
-
-        /* =================================================================== */
-        /*                           Визуализаторы                              */
-        /* =================================================================== */
-
         public void UpdateCameraVisualizersEnabled(bool value)
         {
             if (_cameraVisualizers == null) return;
@@ -107,28 +112,23 @@ namespace Assets.Scripts.Game.Models
             VisualizeLidars = value;
         }
 
-        /* =================================================================== */
-        /*                       Ручное управление                              */
-        /* =================================================================== */
-
         public void UpdateCarManualControl(bool value)
         {
             if (_robotAPI == null) return;
             _robotAPI.ManualControl = value;
         }
 
-        /* =================================================================== */
-        /*                               Скрипт                                 */
-        /* =================================================================== */
-
         public void SetScript(string path)
         {
-            if (_pythonRunner == null) return;
+            if (_pythonRunner == null) 
+                return;
 
-            _pythonRunner.scriptFile = path;
-            _pythonRunner.Initizalize();
+            Debug.Log("Initialize");
+            _scriptFilePath = path;
+            _pythonRunner.Initialize(path);
 
-            ScriptFileName = Path.GetFileName(path);
+            ScriptFileName = Path.GetFileName(_scriptFilePath);
+            Debug.Log($"Scipt file seted: {path}");
         }
 
         public void LaunchScript(bool launch)
@@ -137,14 +137,10 @@ namespace Assets.Scripts.Game.Models
                 return;
 
             if (launch) 
-                _pythonRunner.Launch();
+                _pythonRunner.StartScript();
             else 
-                _pythonRunner.Stop();
+                _pythonRunner.StopScript();
         }
-
-        /* =================================================================== */
-        /*                                 Misc                                 */
-        /* =================================================================== */
 
         public void UpdateCameraEnabled(bool value)
         {
@@ -157,6 +153,29 @@ namespace Assets.Scripts.Game.Models
             if (_carInstance != null) 
                 Destroy(_carInstance);
             GC.SuppressFinalize(this);
+        }
+
+        public void Restart()
+        {
+            if (!Spawned)
+                return;
+
+            _carInstance.transform.SetPositionAndRotation(_spawnPoint.SpawnPosition + Vector3.up, _spawnPoint.SpawnRotation);
+
+            UpdateLidarVisualizersEnabled(VisualizeLidars);
+            UpdateCameraVisualizersEnabled(VisualizeCameras);
+
+            if (_robotAPI != null)
+                _robotAPI.ManualControl = ManualControl;
+            if (_pythonRunner!= null && _scriptFilePath != null)
+                _pythonRunner.Initialize(_scriptFilePath);
+        }
+
+        public void Stop()
+        {
+            if (_robotAPI == null) return;
+
+            _robotAPI.Brake(1);
         }
     }
 }

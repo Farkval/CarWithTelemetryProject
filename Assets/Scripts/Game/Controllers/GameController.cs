@@ -28,35 +28,26 @@ namespace Assets.Scripts.Game.Controllers
         public TimeSpan GameEllapsedTime => DateTime.UtcNow - _gameStartedTime;
         public bool GameStarted { get; private set; }
 
-        /* ----------------------------  PUBLIC API  ---------------------------- */
-
         public IReadOnlyList<SpawnPoint> SpawnPoints => _spawns;
         public IReadOnlyList<Player> Players => _players;
         public IReadOnlyList<GameObject> Cars => _cars;
 
-        /* --------------------------------------------------------------------- */
-
         private void Awake()
         {
-            // Загружаем префабы машин
             _cars.AddRange(Resources.LoadAll<GameObject>("Vehicles"));
 
-            // Инициализируем UI списком машин
             gameUIController.InitializeCars(_cars);
         }
 
-        /// <summary>Открывает JSON-карту, создаёт объекты на сцене и формирует точки спавна.</summary>
         public string LoadMap()
         {
             string path = FileDialog.ShowOpen("JSON файлы (*.json)|*.json", "Выбрать карту")?.FirstOrDefault();
             if (string.IsNullOrEmpty(path) || !File.Exists(path))
                 return string.Empty;
 
-            // Очищаем старые Spawn-ы
             foreach (var sp in _spawns) sp.ClearSpawn();
             _spawns.Clear();
 
-            // Загружаем данные
             MapData data = JsonUtility.FromJson<MapData>(File.ReadAllText(path));
 
             dayNightController.OnTimeChanged((int)data.timeOfDay);
@@ -74,7 +65,6 @@ namespace Assets.Scripts.Game.Controllers
             return Path.GetFileName(path);
         }
 
-        /* ----------------------  Index-safe геттеры  ------------------------ */
 
         public bool TryGetPlayer(int playerIndex, out Player player) =>
             IndexGuard(_players, playerIndex, out player);
@@ -96,10 +86,6 @@ namespace Assets.Scripts.Game.Controllers
             element = list[index];
             return true;
         }
-
-        /* --------------------  Управление игроками  ------------------------ */
-
-        /// <summary>Добавляет нового игрока-контейнер (GameObject+Player) и возвращает текущее количество игроков.</summary>
         public string AddNewPlayer()
         {
             var go = new GameObject($"Player_{_nextPlayerIndex}");
@@ -123,8 +109,6 @@ namespace Assets.Scripts.Game.Controllers
 
         public bool CanAddNewPlayer() => _players.Count < _spawns.Count;
 
-        /* ---------  Синхронизация ручного управления/камер  ----------------- */
-
         public void DisableManualControlForOtherCars(Player active)
         {
             foreach (var p in _players)
@@ -134,17 +118,26 @@ namespace Assets.Scripts.Game.Controllers
         public void DisableCamerasForOtherCars(Player active)
         {
             foreach (var p in _players)
-                p.UpdateCameraEnabled(p == active && active?.Spawned == true);
+            {
+                bool isActiveCam = p == active && active?.Spawned == true;
+                p.UpdateCameraEnabled(isActiveCam);
 
-            mainCamera.enabled = active == null || !active.Spawned;
+                if (p.ThirdPersonCamera != null)
+                    p.ThirdPersonCamera.depth = isActiveCam ? 1 : 0;
+            }
+
+            bool mainIsOn = active == null || !active.Spawned;
+            mainCamera.enabled = mainIsOn;
+            mainCamera.depth = mainIsOn ? 1 : 0;
         }
-
-        /* -----------------------  Скрипты Python  -------------------------- */
 
         public void StartGame()
         {
             foreach (var p in _players)
+            {
+                p.Restart();
                 p.LaunchScript(true);
+            }
 
             _gameStartedTime = DateTime.UtcNow;
             GameStarted = true;
@@ -162,6 +155,16 @@ namespace Assets.Scripts.Game.Controllers
         public bool AnyPlayerSpawned()
         {
             return _players.Any(p => p.Spawned);
+        }
+
+        public void StopRobot(string playerName)
+        {
+            var p = _players.FirstOrDefault(p => p.Name == playerName);
+            if (p == null)
+                return;
+
+            p.LaunchScript(false);
+            p.Stop();
         }
     }
 }

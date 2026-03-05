@@ -4,9 +4,6 @@ using UnityEngine.SceneManagement;
 
 namespace Assets.Scripts.MainMenu
 {
-    /// <summary>
-    /// Контроллер главного меню
-    /// </summary>
     public class MainMenuController : MonoBehaviour
     {
         public void OnPlayButtonPressed()

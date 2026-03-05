@@ -9,10 +9,6 @@ namespace Assets.Scripts.Garage
 {
     public static class VehicleLoader
     {
-        /// <summary>
-        /// Сохраняет в PlayerPrefs все примитивные поля (float/int/bool/enum)
-        /// для каждого компонента из списка.
-        /// </summary>
         public static void SaveSettings(string prefabName, List<Component> components)
         {
             var vsd = new VehicleSaveData
@@ -29,7 +25,6 @@ namespace Assets.Scripts.Garage
                     fields = new List<FieldSaveData>()
                 };
 
-                // Сохраняем только те поля, которые UI умеет редактировать
                 var fields = comp.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
                 foreach (var f in fields)
                 {
@@ -52,10 +47,6 @@ namespace Assets.Scripts.Garage
             PlayerPrefs.Save();
         }
 
-        /// <summary>
-        /// Загружает из PlayerPrefs и задаёт значения только поддерживаемых полей
-        /// в том же порядке компонентов.
-        /// </summary>
         public static void LoadSettings(string prefabName, List<Component> components)
         {
             var key = Key(prefabName);
@@ -76,13 +67,11 @@ namespace Assets.Scripts.Garage
                 var comp = components[i];
                 var csd = vsd.components[i];
 
-                // Проверяем, что тип не изменился
                 if (comp.GetType().AssemblyQualifiedName != csd.assemblyQualifiedName)
                 {
                     continue;
                 }
 
-                // Восстанавливаем только нужные поля
                 foreach (var fsd in csd.fields)
                 {
                     var field = comp.GetType().GetField(fsd.fieldName,

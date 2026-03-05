@@ -9,10 +9,10 @@ namespace Assets.Scripts.MapEditor.Models
     {
         public TimeOfDay timeOfDay;
         public MapSize mapSize;
-        public int heightRes;                  // реальное (_heRes) = size * heightSubDiv
-        public int surfaceRes;                 // реальное (_suRes) = size * surfaceSubDiv
-        public float[] heights;                // длина = (heightRes+1)^2
-        public byte[] surfaces;               // длина =  surfaceRes  * surfaceRes
+        public int heightRes;
+        public int surfaceRes;
+        public float[] heights;
+        public byte[] surfaces;
         public List<ElementInstanceData> instances = new();
 
         public MapData(List<PlacedObject> objects, MapSize ms, TimeOfDay tod)

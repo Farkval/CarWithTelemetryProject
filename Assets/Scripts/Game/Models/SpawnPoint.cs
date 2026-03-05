@@ -12,6 +12,7 @@ namespace Assets.Scripts.Game.Models
 
         public SpawnPoint(Vector3 pos, Quaternion rot)
         {
+            rot = new Quaternion(rot.x, rot.y, rot.z, rot.w);
             SpawnPosition = pos;
             SpawnRotation = rot;
         }

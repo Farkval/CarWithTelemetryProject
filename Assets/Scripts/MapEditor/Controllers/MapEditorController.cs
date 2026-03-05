@@ -15,9 +15,6 @@ using UnityEngine.UI;
 
 namespace Assets.Scripts.MapEditor.Controllers
 {
-    /// <summary>
-    /// Главный контроллер редактора – размещение объектов, предпросмотр, операции Undo/Redo.
-    /// </summary>
     public class MapEditorController : MonoBehaviour
     {
         [Header("Ссылки")]
@@ -41,6 +38,11 @@ namespace Assets.Scripts.MapEditor.Controllers
         [SerializeField] private TMP_Text modifySurfaceRadiusText;
         [SerializeField] private Slider modifySurfaceRadiusSlider;
 
+        [Header("Подсказки")]
+        [SerializeField] private Toggle helpToggle;
+        [SerializeField] private TMP_Text helpText;
+        [SerializeField] private TMP_Text coordinatesText;
+
         private ElementData _activeElement;
         private GameObject _previewInstance;
 
@@ -49,8 +51,8 @@ namespace Assets.Scripts.MapEditor.Controllers
         private List<PlacedObject> _placedObjects = new();
         private ElementPaletteUIController _elementPaletteUIController;
         private MapTerrain _terrain;
-        private PlacedObject _dragObj;           // объект, который сейчас тянут
-        private Coroutine _dragRoutine;       // сама корутина-перетаскивания
+        private PlacedObject _dragObj;
+        private Coroutine _dragRoutine;
         private Vector3 _origPreviewScale = Vector3.one;
         private Vector3 _beforePos, _beforeRot, _beforeScale;
         private float _currentScaleFactor = 1f;
@@ -66,6 +68,8 @@ namespace Assets.Scripts.MapEditor.Controllers
             _terrain = FindFirstObjectByType<MapTerrain>();
 
             ConfigureTerrainTools();
+            helpText.gameObject.SetActive(helpToggle.isOn);
+            helpToggle.onValueChanged.AddListener((state) => helpText.gameObject.SetActive(state));
         }
 
         private void ConfigureTerrainTools()
@@ -158,7 +162,6 @@ namespace Assets.Scripts.MapEditor.Controllers
                 _previewInstance = Instantiate(data.prefab, previewParent);
                 SetLayerRecursively(_previewInstance, LayerMask.NameToLayer("Ignore Raycast"));
 
-                // ── Хайлайт превью тем же способом, что и выбранный объект
                 foreach (var r in _previewInstance.GetComponentsInChildren<Renderer>())
                 {
                     if (r.sharedMaterial.HasFloat("_Outline"))
@@ -179,11 +182,9 @@ namespace Assets.Scripts.MapEditor.Controllers
 
         private void HandleSelection()
         {
-            /* 1. Если уже тащим – ничего не делаем */
             if (_dragRoutine != null || _activeElement != null)
                 return;
 
-            /* 2. Кликнули ЛКМ? */
             if (Input.GetMouseButtonDown(0) &&
                 !EventSystem.current.IsPointerOverGameObject())
             {
@@ -191,7 +192,6 @@ namespace Assets.Scripts.MapEditor.Controllers
                 var mask = LayerMask.GetMask("Default");
                 if (Physics.Raycast(ray, out var hit, 500f, mask, QueryTriggerInteraction.Collide))
                 {
-                    // ищем объект среди размещённых
                     _dragObj = _placedObjects.Find(p => 
                             p.instance == hit.collider.gameObject ||
                             hit.collider.transform.IsChildOf(p.instance.transform));
@@ -231,22 +231,21 @@ namespace Assets.Scripts.MapEditor.Controllers
         private IEnumerator DragObjectLoop(PlacedObject po)
         {
             Transform tr = po.instance.transform;
-            Highlight(po, true);             // вкл. подсветку
+            Highlight(po, true);
 
             // зафиксируем состояние «до»
             _beforePos = tr.position;
             _beforeRot = tr.rotation.eulerAngles;
             _beforeScale = tr.localScale;
 
-            float half = _terrain.MapHalfWorld;      // helper свойство в MapTerrain
+            float half = _terrain.MapHalfWorld;
 
             bool changed = false;
             bool deleted = false;
 
             while (Input.GetMouseButton(0))
             {
-                // — перемещение / поворот / масштаб — точь-в-точь как было
-                if (Input.GetKey(KeyCode.R))                      // ROTATE
+                if (Input.GetKey(KeyCode.R))
                 {
                     float dx = Input.GetAxis("Mouse X");
                     tr.Rotate(Vector3.up, dx * 3f, Space.World);
@@ -255,7 +254,7 @@ namespace Assets.Scripts.MapEditor.Controllers
                     tr.rotation = Quaternion.Euler(e);
                     changed = true;
                 }
-                else if (Input.GetKey(KeyCode.S))                 // SCALE
+                else if (Input.GetKey(KeyCode.S))
                 {
                     float dy = Input.GetAxis("Mouse Y");
                     float k = 1 + dy * .01f;
@@ -275,14 +274,13 @@ namespace Assets.Scripts.MapEditor.Controllers
                     deleted = true;
                     break;
                 }
-                else                                              // MOVE
+                else
                 {
                     Plane g = new(Vector3.up, 0);
                     var ray = sceneCamera.ScreenPointToRay(Input.mousePosition);
                     if (g.Raycast(ray, out float dst))
                     {
                         Vector3 p = ray.GetPoint(dst);
-                        // «скольжение» по границе
                         p.x = Mathf.Clamp(p.x, -half, half);
                         p.z = Mathf.Clamp(p.z, -half, half);
 
@@ -291,13 +289,14 @@ namespace Assets.Scripts.MapEditor.Controllers
 
                         p.y = tr.position.y;
                         tr.position = p;
+                        coordinatesText.text = $"\tX:{tr.position.x};Y:{tr.position.y};Z:{tr.position.z}";
                         changed = true;
                     }
                 }
                 yield return null;
             }
 
-            Highlight(po, false);            // выкл. подсветку
+            Highlight(po, false);
 
             if (changed)
             {
@@ -325,7 +324,7 @@ namespace Assets.Scripts.MapEditor.Controllers
             if (!r)
                 return;
 
-            if (!_original.ContainsKey(r))                    // кэш оригинала
+            if (!_original.ContainsKey(r))
                 _original[r] = r.material.color;
 
             if (r.sharedMaterial.HasFloat("_Outline"))
@@ -356,7 +355,6 @@ namespace Assets.Scripts.MapEditor.Controllers
                 }
                 else
                 {
-                    // пересекаем плоскость Y=0
                     new Plane(Vector3.up, 0).Raycast(ray, out float dist);
                     p = ray.GetPoint(dist);
                 }
@@ -370,9 +368,9 @@ namespace Assets.Scripts.MapEditor.Controllers
 
                 _previewInstance.transform.position =
                     new Vector3(p.x, _previewInstance.transform.position.y, p.z);
+                coordinatesText.text = $"\tX:{_previewInstance.transform.position.x};Y:{_previewInstance.transform.position.y};Z:{_previewInstance.transform.position.z}";
             }
 
-            // Вращение
             if (rotating)
             {
                 float rotDelta = Input.GetAxis("Mouse X") * 5f;
@@ -383,7 +381,6 @@ namespace Assets.Scripts.MapEditor.Controllers
                 _previewInstance.transform.eulerAngles = e;
             }
 
-            // Масштабирование
             if (scaling)
             {
                 float delta = Input.GetAxis("Mouse Y") * 0.02f;

@@ -3,9 +3,6 @@ using UnityEngine;
 
 namespace Assets.Scripts.MapEditor.Models
 {
-    /// <summary>
-    /// Определение элемента карты. Создаётся через «Create/Map Editor/Element Data».
-    /// </summary>
     [CreateAssetMenu(menuName = "Map Editor/Element Data", fileName = "NewElementData")]
     public class ElementData : ScriptableObject
     {

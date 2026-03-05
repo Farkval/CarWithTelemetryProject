@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 2077610373704349257}
   - component: {fileID: 7440387738595306200}
   - component: {fileID: 6884946224897468858}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -117,7 +117,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3880581958419300434}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: StartFlag
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -133,7 +133,7 @@ Transform:
   m_GameObject: {fileID: 3674931417894532453}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 993.6751, y: 526.6561, z: -120.96514}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -153,7 +153,7 @@ GameObject:
   - component: {fileID: 2540111774275470769}
   - component: {fileID: 3522586283458036929}
   - component: {fileID: 793989832866465749}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Cylinder
   m_TagString: Untagged
   m_Icon: {fileID: 0}
