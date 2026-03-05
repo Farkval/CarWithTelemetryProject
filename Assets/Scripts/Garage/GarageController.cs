@@ -72,6 +72,9 @@ namespace Assets.Scripts.Garage
             var carCtrl1 = _currentInstance.GetComponentsInChildren<FourWheelsCarController>().FirstOrDefault();
             if (carCtrl1 != null)
                 carCtrl1.enabled = enabled;
+            var carCtrl2 = _currentInstance.GetComponentsInChildren<TrackedTankController>().FirstOrDefault();
+            if (carCtrl2 != null)
+                carCtrl2.enabled = enabled;
         }
 
         public void OnSavePressed()
